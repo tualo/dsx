@@ -1,4 +1,4 @@
-Ext.define('T.DataSets.Loader', {
+Ext.define('TualoLoader', {
 
     singleton: true,
     baseName: 'T.DataSets.',
