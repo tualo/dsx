@@ -38,11 +38,11 @@ class JsLoader implements IRoute{
             $list = [
                 "js/Loader.js"
               ];
-            $content = '';
+
+            $content = 'const T='.json_encode($o).';'.PHP_EOL.PHP_EOL;
             foreach( $list as $item ){
                 $content .= file_get_contents( dirname(__DIR__,1).'/'.$item ).PHP_EOL.PHP_EOL;
             }
-            $content = 'const T='.json_encode($o).'';
             App::body( $content );
             
         },['get'],true);
