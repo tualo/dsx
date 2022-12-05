@@ -48,7 +48,7 @@ Ext.define('TualoLoader', {
         } );
     },
     getName: function(type,name){
-        let nameParts = [baseName,type,this.capitalize(name)];
+        let nameParts = [this.baseName,type,this.capitalize(name)];
         return nameParts.join('.');
     },
     capitalize: function(str){
