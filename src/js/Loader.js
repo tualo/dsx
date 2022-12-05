@@ -5,7 +5,7 @@ Ext.define('TualoLoader', {
     createField: function(data){
         let resultObject = {},
             ds_db_types_fieldtype = T.ds_db_types_fieldtype;
-            
+
         if (typeof data.column_name=='undefined'){ 
             resultObject = {}; 
         }else{
@@ -28,7 +28,7 @@ Ext.define('TualoLoader', {
             {"name":"__rownumber","type":"number"},
             {"name":"__formlocked","type":"boolean"}
         ];
-        return baseFields.concat(T.ds_column.filter( (item) => { return (table_name==item.table_name) && (item.existsreal==1) } )).map(this.createField);
+        return baseFields.concat(T.ds_column.filter( (item) => { return (table_name==item.table_name) && (item.existsreal==1) } ).map(this.createField));
     },
     createModels: function(){
         
