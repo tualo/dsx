@@ -40,8 +40,7 @@ Ext.define('TualoLoader', {
                         if (this.data.hasOwnProperty("__table_name") && this.data.hasOwnProperty(this.data["__table_name"]+"__"+fieldName)) return this.data[this.data["__table_name"]+"__"+fieldName];
                         return this.data[fieldName];
                     },
-                    idProperty: "__id",
-                    fields: fields
+                    idProperty: "__id"
                 };
             definition.fields = this.createFields(item.table_name);
             Ext.define(dsName,definition);
