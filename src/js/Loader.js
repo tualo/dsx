@@ -61,9 +61,9 @@ Ext.define('TualoLoader', {
                 statics: {
                   tablename: item.table_name.toLowerCase()
                 },
+                tablename: item.table_name.toLowerCase(),
                 statefulFilters: true,
                 // groupField: [{groupfield}],
-                tablename: item.table_name.toLowerCase(),
                 alias: 'store.'+this.aliasPrefix+''+item.table_name.toLowerCase()+'_store',
                 model: this.getName('model',item.table_name),
                 autoSync: false,
@@ -72,6 +72,105 @@ Ext.define('TualoLoader', {
             Ext.define(dsName,definition);
             console.log(dsName);
         } );
+    },
+
+    createListColumn: function(ds_column_list_label){
+        /*
+        '{',
+      '"dataIndex":',	`DOUBLEQUOTE`( lower(concat( ds_column_list_label.table_name,'__',ds_column_list_label.column_name ) )) ,',',
+      '"header":',		`DOUBLEQUOTE`(ds_column_list_label.label) ,',',
+      '"xtype":',		`DOUBLEQUOTE`(ds_column_list_label.xtype) ,',',
+      
+      if(ds_column_list_label.summarytype<>'', concat( '"summaryType": ',`DOUBLEQUOTE`(ds_column_list_label.summarytype),',' ),'' ),
+      if(ds_column_list_label.summarytype<>'', concat( '"summaryRenderer": Tualo.Renderer.getRenderer(', `DOUBLEQUOTE`(ds_column_list_label.summaryrenderer),'),' ),'' ),
+      
+  
+
+      '"filter":',		if(ds_column_list_label.listfiltertype <>'',  concat(' {"type":"',ds_column_list_label.listfiltertype,'"}') ,if(ds_column.data_type='date','{"type":"date", "dateFormat": "Y-m-d"}',  if(ds_column.data_type='int','{"type":"number"}', if((ds_column.data_type in ('tinyint','boolean') or ds_column.column_type='bigint(4)' ),'{"type":"boolean", "yesText": "Ja", "noText":"Nein"}','{"type":"string"}') )   ) ),',',
+
+      '"hidden":',		if(ds_column_list_label.hidden=0,'false','true') ,',',
+      if( ifnull(ds_column_list_label.editor,'')='','', concat( '"editor": "', ds_column_list_label.editor ,'"', ', ') ),
+      '"flex":',		ifnull(ds_column_list_label.flex,1) ,'',
+      '}'
+        */
+       
+        let resultObject = {
+            dataIndex: ds_column_list_label.table_name.toLowerCase()+'__'+ds_column_list_label.column_name.toLowerCase(),
+            header: ds_column_list_label.label,
+            hidden: (ds_column_list_label.hidden==1),
+            flex: (ds_column_list_label.flex)?ds_column_list_label.flex:1
+        }
+
+        return resultObject;
+    },
+    createListColumns: function(table_name){
+        let baseColumns = [];
+
+        
+        return baseColumns.concat(T.ds_column_list_label.filter( (item) => { return (table_name==item.table_name) } ).map(this.createListColumn));
+    },
+    createLists: function(){
+        T.ds.forEach( (item) => {
+            let dsName = this.getName('list',item.table_name),
+            definition = {
+                extend: 'Ext.grid.Panel',
+                alias: 'store.'+this.aliasPrefix+'listview-'+item.table_name.toLowerCase()+'',
+                statics: {
+                    tablename: item.table_name.toLowerCase()
+                },
+                tablename: item.table_name.toLowerCase(),
+                selModel: item.listselectionmodel,
+                store: {
+                    type: this.aliasPrefix+''+item.table_name.toLowerCase()+'_store'
+                },
+                stateId: this.aliasPrefix+''+item.table_name.toLowerCase()+'_state',
+                stateful: true,
+            };
+            definition.colunmns = this.createListColumns(item.table_name);
+            Ext.define(dsName,definition);
+            console.log(dsName);
+        } );
+
+        /*
+
+
+
+        Ext.define("Tualo.DataSets.list.[{ds_name}]",  {
+            extend: "[{listviewbaseclass}]",
+            alias: "widget.[{lowerprefix}]listview-[{table_name_lower}]",
+            tablename: "[{table_name_lower}]",
+            paramfieldPrefix: "[{table_name_lower}]__",
+            lowerprefix: "[{lowerprefix}]",
+            controller: "[{lowerprefix}][{table_name_lower}]_list_controller",
+            viewModel: {
+                type: "[{lowerprefix}][{table_name_lower}]_list_model"
+            },
+            selModel: "[{listselectionmodel}]",
+            features: [{listfeatures}],
+            columns:  [{columns}],
+            store: {
+                type: "[{lowerprefix}][{table_name_lower}]_store"
+            },
+            stateId: "[{lowerprefix}][{table_name_lower}]_state",
+            stateful: true,
+            viewConfig: {
+                plugins: [ ].concat([{listplugins}]),
+                listeners: {
+                    drop: "onDropGrid"
+                },
+                getRowClass: function(record, rowIndex, rowParams, store){
+                    var tn = store.tablename||"";
+                    if ((rowIndex%2==0)&&(typeof record.data[tn+"___rowclass_even"]=="string")){
+                        return record.data[tn+"___rowclass_even"];
+                    }
+                    if ((rowIndex%2==1)&&(typeof record.data[tn+"___rowclass_odd"]=="string")){
+                        return record.data[tn+"___rowclass_odd"];
+                    }
+                    return "";
+                }
+            }
+            });
+        */
     },
     factory: function() {
 
