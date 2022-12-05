@@ -19,9 +19,9 @@ Ext.define('TualoLoader', {
             {"name":"__rownumber","type":"number"},
             {"name":"__formlocked","type":"boolean"}
         ];
-        return baseFields.concat(ds_column.filter( (item) => { return (table_name==item.table_name) && (item.existsreal==1) } )).map(this.createField);
+        return baseFields.concat(T.ds_column.filter( (item) => { return (table_name==item.table_name) && (item.existsreal==1) } )).map(this.createField);
     },
-    createModels: function(list){
+    createModels: function(){
         
         T.ds.forEach( (item) => {
             let dsName = this.baseName + 'model.' + item.table_name;
