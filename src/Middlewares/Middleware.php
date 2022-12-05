@@ -14,6 +14,6 @@ class Middleware implements IMiddleware{
                 App::addError($e->getMessage());
             }
         },-100);
-        */
+        
     }
 }
