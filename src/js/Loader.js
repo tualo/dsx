@@ -93,7 +93,7 @@ Ext.define('TualoLoader', {
       '"flex":',		ifnull(ds_column_list_label.flex,1) ,'',
       '}'
         */
-       
+
         let resultObject = {
             dataIndex: ds_column_list_label.table_name.toLowerCase()+'__'+ds_column_list_label.column_name.toLowerCase(),
             header: ds_column_list_label.label,
@@ -176,7 +176,7 @@ Ext.define('TualoLoader', {
 
         this.createModels();
         this.createStores();
-
+        this.createLists();
         /*
         fetch('./ds/ds_column/read?limit=100000')
         .then( (data) => {                    return data.json(data) })
