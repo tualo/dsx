@@ -67,7 +67,7 @@ Ext.define('TualoLoader', {
                 alias: 'store.'+this.aliasPrefix+''+item.table_name.toLowerCase()+'_store',
                 model: this.getName('model',item.table_name),
                 autoSync: false,
-                pageSize: [{default_pagesize}]
+                pageSize: item.default_pagesize
               };
             Ext.define(dsName,definition);
         } );
