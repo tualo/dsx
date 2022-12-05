@@ -126,8 +126,8 @@ Ext.define('TualoLoader', {
                 stateId: this.aliasPrefix+''+item.table_name.toLowerCase()+'_state',
                 stateful: true,
             };
-            definition.colunmns = this.createListColumns(item.table_name);
-            console.log(definition.colunmns);
+            definition.columns = this.createListColumns(item.table_name);
+            console.log(definition);
             Ext.define(dsName,definition);
             console.log(dsName);
         } );
