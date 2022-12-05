@@ -23,23 +23,9 @@ Ext.define('TualoLoader', {
     },
     createModels: function(list){
         
-        list.forEach( (item) => {
-/*
-            '{ ',
-        '"name": "',lower(ds_column.table_name),'__',lower(ds_column.column_name),'",',char(10),
-        getModelSingleFieldDefault( `ds_db_types_fieldtype`.`fieldtype` , `ds_column`.`default_value` ),
-        getModelSingleFieldDateFormat( `ds_column`.`data_type`  ),
-        '"type": "', if(ds_column.column_type='bigint(4)','boolean', ifnull(`ds_column_forcetype`.`fieldtype`, ifnull(`ds_db_types_fieldtype`.`fieldtype`,'string'))) ,'"', char(10),
-
-
-        if(
-            ds_column.default_value like '{%',',"allowNull": true',
-            ''
-        ),'',char(10),
-            */
-
+        T.ds.forEach( (item) => {
             let dsName = this.baseName + 'model.' + item.table_name;
-            Ext.define("Tualo.DataSets.model."+dsName, {
+            Ext.define(dsName, {
                 extend: "Ext.data.Model",
                 entityName: item.table_name,
                 get: function(fieldName) {
@@ -48,7 +34,7 @@ Ext.define('TualoLoader', {
                     return this.data[fieldName];
                 },
                 idProperty: "__id",
-                fields: [{fields}]
+                fields: this.createFields(item.table_name)
             })
         } )
         /*
