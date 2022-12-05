@@ -75,7 +75,10 @@ Ext.define('TualoLoader', {
     },
     factory: function() {
 
-
+        this.createModels();
+        this.createStores();
+        
+        /*
         fetch('./ds/ds_column/read?limit=100000')
         .then( (data) => {                    return data.json(data) })
         .then( (data) => { console.log(data); return fetch('./ds/ds/read?limit=100000') })
@@ -91,6 +94,7 @@ Ext.define('TualoLoader', {
         .catch( () => {
 
         });
+        */
     }
 
 
