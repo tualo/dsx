@@ -114,7 +114,7 @@ Ext.define('TualoLoader', {
             let dsName = this.getName('list',item.table_name),
             definition = {
                 extend: 'Ext.grid.Panel',
-                alias: 'store.'+this.aliasPrefix+'listview-'+item.table_name.toLowerCase()+'',
+                alias: 'widget.'+this.aliasPrefix+'listview-'+item.table_name.toLowerCase()+'',
                 statics: {
                     tablename: item.table_name.toLowerCase()
                 },
