@@ -5,6 +5,7 @@ Ext.define('TualoLoader', {
     createField: function(data){
         let ds_db_types_fieldtype = T.ds_db_types_fieldtype;
         console.log('createField',data);
+        if (typeof data.column_name=='undefined') return {};
         return {
             name: data.table_name.toLowerCase()+'__'+data.column_name.toLowerCase(),
             type: (ds_db_types_fieldtype.filter(
