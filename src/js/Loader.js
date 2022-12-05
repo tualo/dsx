@@ -27,6 +27,8 @@ Ext.define('TualoLoader', {
         
         T.ds.forEach( (item) => {
             let dsName = this.baseName + 'model.' + item.table_name;
+            let fields = this.createFields(item.table_name);
+            console.log(fields);
             Ext.define(dsName, {
                 extend: "Ext.data.Model",
                 entityName: item.table_name,
@@ -36,7 +38,7 @@ Ext.define('TualoLoader', {
                     return this.data[fieldName];
                 },
                 idProperty: "__id",
-                fields: this.createFields(item.table_name)
+                fields: fields
             })
         } )
         /*
