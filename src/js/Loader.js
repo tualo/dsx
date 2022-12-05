@@ -98,7 +98,7 @@ Ext.define('TualoLoader', {
             dataIndex: ds_column_list_label.table_name.toLowerCase()+'__'+ds_column_list_label.column_name.toLowerCase(),
             header: ds_column_list_label.label,
             hidden: (ds_column_list_label.hidden==1),
-            flex: (ds_column_list_label.flex)?ds_column_list_label.flex:1
+            flex: parseFloat( (ds_column_list_label.flex)?ds_column_list_label.flex:1) 
         }
 
         return resultObject;
