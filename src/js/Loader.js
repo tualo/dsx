@@ -98,6 +98,7 @@ Ext.define('TualoLoader', {
             dataIndex: ds_column_list_label.table_name.toLowerCase()+'__'+ds_column_list_label.column_name.toLowerCase(),
             header: ds_column_list_label.label,
             hidden: (ds_column_list_label.hidden==1),
+            xtype: ds_column_list_label.xtype,
             flex: parseFloat( (ds_column_list_label.flex)?ds_column_list_label.flex:1) 
         }
 
@@ -195,6 +196,12 @@ Ext.define('TualoLoader', {
 
         });
         */
+    },
+    test: function(){
+        this.factory();
+        let zr =Ext.create('T.DataSets.list.Zielregionen');
+        Application.setActiveItem(zr);
+        zr.getStore().load();
     }
 
 
