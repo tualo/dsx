@@ -1,7 +1,8 @@
 Ext.define('TualoLoader', {
 
     singleton: true,
-    baseName: 'T.DataSets.',
+    baseName: 'T.DataSets',
+    aliasPrefix: '',
     createField: function(data){
         let resultObject = {},
             ds_db_types_fieldtype = T.ds_db_types_fieldtype;
@@ -16,8 +17,6 @@ Ext.define('TualoLoader', {
                 ).concat([{fieldtype:'string'}]))[0].fieldtype
             };
         }
-
-        console.log('createField',resultObject);
         return resultObject;
     },
     createFields: function(table_name){
@@ -31,38 +30,49 @@ Ext.define('TualoLoader', {
         return baseFields.concat(T.ds_column.filter( (item) => { return (table_name==item.table_name) && (item.existsreal==1) } ).map(this.createField));
     },
     createModels: function(){
-        
         T.ds.forEach( (item) => {
-            let dsName = this.baseName + 'model.' + item.table_name;
-            let fields = this.createFields(item.table_name);
-            console.log(fields);
-            Ext.define(dsName, {
-                extend: "Ext.data.Model",
-                entityName: item.table_name,
-                get: function(fieldName) {
-                    if (this.data.hasOwnProperty(fieldName)) return this.data[fieldName];
-                    if (this.data.hasOwnProperty("__table_name") && this.data.hasOwnProperty(this.data["__table_name"]+"__"+fieldName)) return this.data[this.data["__table_name"]+"__"+fieldName];
-                    return this.data[fieldName];
+            let dsName = this.getName('model',item.table_name),
+                definition = {
+                    extend: "Ext.data.Model",
+                    entityName: item.table_name,
+                    get: function(fieldName) {
+                        if (this.data.hasOwnProperty(fieldName)) return this.data[fieldName];
+                        if (this.data.hasOwnProperty("__table_name") && this.data.hasOwnProperty(this.data["__table_name"]+"__"+fieldName)) return this.data[this.data["__table_name"]+"__"+fieldName];
+                        return this.data[fieldName];
+                    },
+                    idProperty: "__id",
+                    fields: fields
+                };
+            definition.fields = this.createFields(item.table_name);
+            Ext.define(dsName,definition);
+        } );
+    },
+    getName: function(type,name){
+        let nameParts = [baseName,type,this.capitalize(name)];
+        return nameParts.join('.');
+    },
+    capitalize: function(str){
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    },
+    createStores: function(){
+        T.ds.forEach( (item) => {
+            let dsName = this.getName('stores',item.table_name),
+            definition = {
+                extend: "Tualo.DataSets.store.Basic",
+                statics: {
+                  tablename: item.table_name.toLowerCase()
                 },
-                idProperty: "__id",
-                fields: fields
-            })
-        } )
-        /*
-        Ext.define("Tualo.DataSets.model.[{ds_name}]", {
-            extend: "Ext.data.Model",
-            
-            entityName: "[{table_name_lower}]",
-            get: function(fieldName) {
-              if (this.data.hasOwnProperty(fieldName)) return this.data[fieldName];
-              if (this.data.hasOwnProperty("__table_name") && this.data.hasOwnProperty(this.data["__table_name"]+"__"+fieldName)) return this.data[this.data["__table_name"]+"__"+fieldName];
-              return this.data[fieldName];
-            },
-            idProperty: "__id",
-            idPropertyY: function(v){ return [{idfieldformula}].join("|");},
-            fields: [{fields}]
-          });
-          */
+                statefulFilters: true,
+                // groupField: [{groupfield}],
+                tablename: item.table_name.toLowerCase(),
+                alias: 'store.'+this.aliasPrefix+''+item.table_name.toLowerCase()+'_store',
+                model: this.getName('model',item.table_name),
+                autoSync: false,
+                pageSize: [{default_pagesize}]
+              };
+            Ext.define(dsName,definition);
+        } );
+        console.log(dsName);
     },
     factory: function() {
 
