@@ -3,15 +3,22 @@ Ext.define('TualoLoader', {
     singleton: true,
     baseName: 'T.DataSets.',
     createField: function(data){
-        let ds_db_types_fieldtype = T.ds_db_types_fieldtype;
-        console.log('createField',data);
-        if (typeof data.column_name=='undefined') return {};
-        return {
-            name: data.table_name.toLowerCase()+'__'+data.column_name.toLowerCase(),
-            type: (ds_db_types_fieldtype.filter(
-                (item) => { return (data.data_type==item.dbtype)  }
-            ).concat([{fieldtype:'string'}]))[0].fieldtype
-        };
+        let resultObject = {},
+            ds_db_types_fieldtype = T.ds_db_types_fieldtype;
+            
+        if (typeof data.column_name=='undefined'){ 
+            resultObject = {}; 
+        }else{
+            resultObject = {
+                name: data.table_name.toLowerCase()+'__'+data.column_name.toLowerCase(),
+                type: (ds_db_types_fieldtype.filter(
+                    (item) => { return (data.data_type==item.dbtype)  }
+                ).concat([{fieldtype:'string'}]))[0].fieldtype
+            };
+        }
+
+        console.log('createField',resultObject);
+        return resultObject;
     },
     createFields: function(table_name){
         let baseFields = [
