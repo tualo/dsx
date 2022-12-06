@@ -19,7 +19,7 @@ class Read implements IRoute{
                 $db->direct('call dsx_rest_api_get({request},@result);',$_REQUEST);
                 $o = $db->singleValue('select @result res',[],'res');
                 App::result('o',$o);
-                App::result('data',$db->direct('select * from `',$o['temptable'],'`'))
+                App::result('data',$db->direct('select * from `',$o['temptable'],'`'));
             }catch(\Exception $e){
                 App::result('last_sql', $db->last_sql );
                 App::result('msg', $e->getMessage());
