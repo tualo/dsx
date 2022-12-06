@@ -23,8 +23,6 @@ class Read implements IRoute{
             }catch(\Exception $e){
                 App::result('last_sql', $db->last_sql );
                 App::result('msg', $e->getMessage());
-                App::result('dq', implode("\n",$GLOBALS['debug_query']));
-
             }
             TualoApplication::contenttype('application/json');
         },['get'],true);
