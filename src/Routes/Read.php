@@ -24,7 +24,7 @@ class Read implements IRoute{
                 App::result('last_sql', $db->last_sql );
                 App::result('msg', $e->getMessage());
             }
-            TualoApplication::contenttype('application/json');
+            App::contenttype('application/json');
         },['get'],true);
     }
 }
