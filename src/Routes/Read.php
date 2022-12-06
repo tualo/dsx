@@ -16,10 +16,17 @@ class Read implements IRoute{
             $tablename = $matches['tablename'];
             $db->direct('SET SESSION group_concat_max_len = 4294967295;');
             try{
+                $_REQUEST['tablename']=$tablename;
                 $db->direct('call dsx_rest_api_get({request},@result);',['request'=>json_encode($_REQUEST)]);
-                $o = $db->singleValue('select @result res',[],'res');
+                $o = json_decode($db->singleValue('select @result res',[],'res'),true);
                 App::result('o',$o);
-                App::result('data',$db->direct('select * from `',$o['temptable'],'`'));
+                $sql   = 'select * from `'.$o['temptable'].'`';
+                $data  = $db->direct($sql);
+
+                App::result('data',$data);
+                App::result('count',count($data));
+                
+                App::result('success', true);
             }catch(\Exception $e){
                 App::result('last_sql', $db->last_sql );
                 App::result('msg', $e->getMessage());
