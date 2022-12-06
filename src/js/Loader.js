@@ -30,7 +30,7 @@ Ext.define('TualoLoader', {
         return baseFields.concat(T.ds_column.filter( (item) => { return (table_name==item.table_name) && (item.existsreal==1) } ).map(this.createField));
     },
     createModels: function(){
-        T.ds.forEach( (item) => {
+        T.ds.filter( (item) => { return (""!=item.title) } ).forEach( (item) => {
             let dsName = this.getName('model',item.table_name),
                 definition = {
                     extend: "Ext.data.Model",
@@ -54,7 +54,7 @@ Ext.define('TualoLoader', {
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     },
     createStores: function(){
-        T.ds.forEach( (item) => {
+        T.ds.filter( (item) => { return (""!=item.title) } ).forEach( (item) => {
             let dsName = this.getName('stores',item.table_name),
             definition = {
                 extend: "Tualo.DataSets.store.Basic",
@@ -111,7 +111,7 @@ Ext.define('TualoLoader', {
         return baseColumns.concat(T.ds_column_list_label.filter( (item) => { return (table_name==item.table_name) } ).map(this.createListColumn));
     },
     createLists: function(){
-        T.ds.forEach( (item) => {
+        T.ds.filter( (item) => { return (""!=item.title) } ).forEach( (item) => {
             let dsName = this.getName('list',item.table_name),
             definition = {
                 extend: 'Ext.grid.Panel',
