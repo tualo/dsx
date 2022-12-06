@@ -57,7 +57,7 @@ Ext.define('TualoLoader', {
         T.ds.filter( (item) => { return (""!=item.title) } ).forEach( (item) => {
             let dsName = this.getName('stores',item.table_name),
             definition = {
-                extend: "Tualo.DataSets.store.Basic",
+                extend: "T.DataSets.store.Basic",
                 statics: {
                   tablename: item.table_name.toLowerCase()
                 },

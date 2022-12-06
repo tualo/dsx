@@ -36,8 +36,9 @@ class JsLoader implements IRoute{
                 'ds_db_types_fieldtype' =>  $db->direct('select * from ds_db_types_fieldtype')
             ];
             $list = [
+                "js/store/Basic.js"
                 "js/Loader.js"
-              ];
+            ];
 
             $content = 'const T='.json_encode($o).';'.PHP_EOL.PHP_EOL;
             foreach( $list as $item ){
