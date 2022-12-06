@@ -36,7 +36,7 @@ class JsLoader implements IRoute{
                 'ds_db_types_fieldtype' =>  $db->direct('select * from ds_db_types_fieldtype')
             ];
             $list = [
-                "js/store/Basic.js"
+                "js/store/Basic.js",
                 "js/Loader.js"
             ];
 
