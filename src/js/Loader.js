@@ -198,10 +198,17 @@ Ext.define('TualoLoader', {
         */
     },
     test: function(){
+        console.time("factory");
         this.factory();
-        let zr =Ext.create('T.DataSets.list.Adressen');
+        console.timeEnd("factory");
+        console.time("Ext");
+        let zr =Ext.create('T.DataSets.list.Adressen',{
+            title: '',
+            collapsibe: true
+        });
         Application.setActiveItem(zr);
         zr.getStore().load();
+        console.timeEnd("Ext");
     }
 
 
