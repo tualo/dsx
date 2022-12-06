@@ -199,7 +199,7 @@ Ext.define('TualoLoader', {
     },
     test: function(){
         this.factory();
-        let zr =Ext.create('T.DataSets.list.Zielregionen');
+        let zr =Ext.create('T.DataSets.list.Adressen');
         Application.setActiveItem(zr);
         zr.getStore().load();
     }
