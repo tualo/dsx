@@ -18,11 +18,11 @@ class Read implements IRoute{
             try{
                 $_REQUEST['tablename']=$tablename;
                 if (!isset($_REQUEST['count'])) $_REQUEST['count']=1;
-                
+
                 $db->direct('call dsx_rest_api_get({request},@result);',['request'=>json_encode($_REQUEST)]);
                 $o = json_decode($db->singleValue('select @result res',[],'res'),true);
                 App::result('data',$o['data']);
-                App::result('count',$o['count']);
+                App::result('total',$o['total']);
                 App::result('success', $o['success']);
             }catch(\Exception $e){
                 App::result('last_sql', $db->last_sql );
