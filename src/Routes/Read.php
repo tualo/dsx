@@ -17,7 +17,8 @@ class Read implements IRoute{
             $db->direct('SET SESSION group_concat_max_len = 4294967295;');
             try{
                 $_REQUEST['tablename']=$tablename;
-                $_REQUEST['replace']=1;
+                if (!isset($_REQUEST['count'])) $_REQUEST['count']=1;
+                
                 $db->direct('call dsx_rest_api_get({request},@result);',['request'=>json_encode($_REQUEST)]);
                 $o = json_decode($db->singleValue('select @result res',[],'res'),true);
                 App::result('data',$o['data']);
