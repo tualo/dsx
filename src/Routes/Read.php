@@ -18,6 +18,8 @@ class Read implements IRoute{
             try{
                 $_REQUEST['tablename']=$tablename;
                 if (!isset($_REQUEST['count'])) $_REQUEST['count']=1;
+                if (!isset($_REQUEST['comibedfieldname'])) $_REQUEST['comibedfieldname']=1;
+                
                 if (isset($_REQUEST['filter'])) $_REQUEST['filter']=json_decode($_REQUEST['filter']);
                 if (isset($_REQUEST['sort'])) $_REQUEST['sort']=json_decode($_REQUEST['sort']);
 
