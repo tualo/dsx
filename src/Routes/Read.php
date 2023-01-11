@@ -20,8 +20,9 @@ class Read implements IRoute{
                 if (!isset($_REQUEST['count'])) $_REQUEST['count']=1;
 
                 $db->direct('call dsx_rest_api_get({request},@result);',['request'=>json_encode($_REQUEST)]);
+
                 $o = json_decode($db->singleValue('select @result res',[],'res'),true);
-                App::result('data',$o['data']);
+                if (isset($o['debug_query'])) App::result('data',$o['debug_query']);
                 App::result('total',$o['total']);
                 App::result('success', $o['success']);
             }catch(\Exception $e){
