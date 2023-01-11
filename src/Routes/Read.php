@@ -18,12 +18,15 @@ class Read implements IRoute{
             try{
                 $_REQUEST['tablename']=$tablename;
                 if (!isset($_REQUEST['count'])) $_REQUEST['count']=1;
+                if (!isset($_REQUEST['filter'])) $_REQUEST['filter']=json_decode($_REQUEST['filter']);
+                if (!isset($_REQUEST['sort'])) $_REQUEST['sort']=json_decode($_REQUEST['sort']);
 
                 $db->direct('call dsx_rest_api_get({request},@result);',['request'=>json_encode($_REQUEST)]);
 
                 $o = json_decode($db->singleValue('select @result res',[],'res'),true);
                 if (isset($o['debug_query'])) App::result('data',$o['debug_query']);
                 App::result('total',$o['total']);
+                //App::result('total',$db->singleValue('select @re res',[],'res')
                 App::result('success', $o['success']);
             }catch(\Exception $e){
                 App::result('last_sql', $db->last_sql );
