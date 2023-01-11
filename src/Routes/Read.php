@@ -27,6 +27,6 @@ class Read implements IRoute{
                 App::result('msg', $e->getMessage());
             }
             App::contenttype('application/json');
-        },['get'],true);
+        },['get','post'],true);
     }
 }
