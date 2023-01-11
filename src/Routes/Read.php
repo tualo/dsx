@@ -19,14 +19,9 @@ class Read implements IRoute{
                 $_REQUEST['tablename']=$tablename;
                 $db->direct('call dsx_rest_api_get({request},@result);',['request'=>json_encode($_REQUEST)]);
                 $o = json_decode($db->singleValue('select @result res',[],'res'),true);
-                App::result('o',$o);
-                $sql   = 'select * from `'.$o['temptable'].'`';
-                $data  = $db->direct($sql);
-
-                App::result('data',$data);
-                App::result('count',count($data));
-                
-                App::result('success', true);
+                App::result('data',$o['data']);
+                App::result('count',count($o['count']));
+                App::result('success', $o['success']);
             }catch(\Exception $e){
                 App::result('last_sql', $db->last_sql );
                 App::result('msg', $e->getMessage());
