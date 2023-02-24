@@ -9,7 +9,7 @@ class Compiler implements ICompiler {
     public static function getFiles(){
 
 
-        $db = App::get('session')->getDB();
+        $db = TualoApplication::get('session')->getDB();
             
         if (!is_null($db)){
             $files = [];
