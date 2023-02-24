@@ -17,5 +17,6 @@
     },
     "minimum-stability": "dev",
     "require": {
+        "tualo/extjscmplr": "*"
     }
 }
