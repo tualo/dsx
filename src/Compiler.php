@@ -39,7 +39,7 @@ class Compiler implements ICompiler {
             $files[] = [
                 'toolkit'=>'',
                 'modul'=>'dsx',
-                'files'=>TualoApplication::get('tempPath').'/models.js'
+                'files'=>[TualoApplication::get('tempPath').'/models.js']
             ];
 
 
@@ -58,7 +58,7 @@ class Compiler implements ICompiler {
             $files[] = [
                 'toolkit'=>'',
                 'modul'=>'dsx',
-                'files'=>TualoApplication::get('tempPath').'/stores.js'
+                'files'=>[TualoApplication::get('tempPath').'/stores.js']
             ];
             return $files;
         }
