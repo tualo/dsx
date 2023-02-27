@@ -37,6 +37,7 @@ class Compiler implements ICompiler {
             );
 
             $files[] = [
+                'prio'=>'99999999999991',
                 'toolkit'=>'',
                 'modul'=>'dsx',
                 'files'=>[TualoApplication::get('tempPath').'/models.js']
@@ -56,10 +57,30 @@ class Compiler implements ICompiler {
             );
 
             $files[] = [
+                'prio'=>'99999999999992',
                 'toolkit'=>'',
                 'modul'=>'dsx',
                 'files'=>[TualoApplication::get('tempPath').'/stores.js']
             ];
+
+            file_put_contents(
+                TualoApplication::get('tempPath').'/column.js',
+                array_reduce(
+                    $db->direct('select js,table_name,"view_ds_column" m from view_ds_column' ), 
+                    function($acc,$item){
+                        return $acc."\n".
+                            "/* console.debug('".$item['table_name']."','".$item['m']."');*/".
+                            "\n".$item['js'];
+                })
+            );
+
+            $files[] = [
+                'prio'=>'99999999999993',
+                'toolkit'=>'',
+                'modul'=>'dsx',
+                'files'=>[TualoApplication::get('tempPath').'/column.js']
+            ];
+
             return $files;
         }
     }
