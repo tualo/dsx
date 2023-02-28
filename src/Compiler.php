@@ -36,13 +36,7 @@ class Compiler implements ICompiler {
                 })
             );
 
-            $files[] = [
-                'prio'=>'99999999999991',
-                'toolkit'=>'',
-                'modul'=>'dsx',
-                'files'=>[TualoApplication::get('tempPath').'/models.js']
-            ];
-
+         
 
 
             file_put_contents(
@@ -56,13 +50,7 @@ class Compiler implements ICompiler {
                 })
             );
 
-            $files[] = [
-                'prio'=>'99999999999992',
-                'toolkit'=>'',
-                'modul'=>'dsx',
-                'files'=>[TualoApplication::get('tempPath').'/stores.js']
-            ];
-
+            
             file_put_contents(
                 TualoApplication::get('tempPath').'/column.js',
                 array_reduce(
@@ -78,7 +66,11 @@ class Compiler implements ICompiler {
                 'prio'=>'99999999999993',
                 'toolkit'=>'',
                 'modul'=>'dsx',
-                'files'=>[TualoApplication::get('tempPath').'/column.js']
+                'files'=>[
+                    ['prio'=>1,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/models.js'],
+                    ['prio'=>2,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/stores.js'],
+                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/column.js']
+                ]
             ];
 
             return $files;
