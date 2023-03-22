@@ -62,6 +62,43 @@ class Compiler implements ICompiler {
                 })
             );
 
+
+            file_put_contents(
+                TualoApplication::get('tempPath').'/combobox.js',
+                array_reduce(
+                    $db->direct('select js,table_name,"view_ds_combobox" m from view_ds_combobox' ), 
+                    function($acc,$item){
+                        return $acc."\n".
+                            "/* console.debug('".$item['table_name']."','".$item['m']."');*/".
+                            "\n".$item['js'];
+                })
+            );
+
+
+            file_put_contents(
+                TualoApplication::get('tempPath').'/displayfield.js',
+                array_reduce(
+                    $db->direct('select js,table_name,"view_ds_displayfield" m from view_ds_displayfield' ), 
+                    function($acc,$item){
+                        return $acc."\n".
+                            "/* console.debug('".$item['table_name']."','".$item['m']."');*/".
+                            "\n".$item['js'];
+                })
+            );
+
+            file_put_contents(
+                TualoApplication::get('tempPath').'/controller.js',
+                array_reduce(
+                    $db->direct('select js,table_name,"view_ds_controller" m from view_ds_controller' ), 
+                    function($acc,$item){
+                        return $acc."\n".
+                            "/* console.debug('".$item['table_name']."','".$item['m']."');*/".
+                            "\n".$item['js'];
+                })
+            );
+
+            
+
             $files[] = [
                 'prio'=>'99999999999993',
                 'toolkit'=>'',
@@ -69,7 +106,10 @@ class Compiler implements ICompiler {
                 'files'=>[
                     ['prio'=>1,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/models.js'],
                     ['prio'=>2,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/stores.js'],
-                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/column.js']
+                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/column.js'],
+                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/combobox.js'],
+                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/displayfield.js'],
+                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/controller.js']
                 ]
             ];
 
