@@ -97,8 +97,20 @@ class Compiler implements ICompiler {
                 })
             );
 
-            
 
+            file_put_contents(
+                TualoApplication::get('tempPath').'/list.js',
+                array_reduce(
+                    $db->direct('select js,table_name,"view_ds_list" m from view_ds_list' ), 
+                    function($acc,$item){
+                        return $acc."\n".
+                            "/* console.debug('".$item['table_name']."','".$item['m']."');*/".
+                            "\n".$item['js'];
+                })
+            );
+
+            
+            
             $files[] = [
                 'prio'=>'99999999999993',
                 'toolkit'=>'',
