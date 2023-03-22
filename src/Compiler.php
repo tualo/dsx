@@ -64,7 +64,7 @@ class Compiler implements ICompiler {
 
             $files[] = [
                 'prio'=>'99999999999993',
-                'toolkit'=>'',
+                'toolkit'=>'both',
                 'modul'=>'dsx',
                 'files'=>[
                     ['prio'=>1,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/models.js'],
