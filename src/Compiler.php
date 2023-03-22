@@ -121,7 +121,8 @@ class Compiler implements ICompiler {
                     ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/column.js'],
                     ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/combobox.js'],
                     ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/displayfield.js'],
-                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/controller.js']
+                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/controller.js'],
+                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/list.js']
                 ]
             ];
 
