@@ -119,6 +119,16 @@ class Compiler implements ICompiler {
                 })
             );
 
+            file_put_contents(
+                TualoApplication::get('tempPath').'/dsview.js',
+                array_reduce(
+                    $db->direct('select js,table_name,"view_ds_dsview" m from view_ds_dsview' ), 
+                    function($acc,$item){
+                        return $acc."\n".
+                            "/* console.debug('".$item['table_name']."','".$item['m']."');*/".
+                            "\n".$item['js'];
+                })
+            );
             
             
             $files[] = [
@@ -133,7 +143,8 @@ class Compiler implements ICompiler {
                     ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/displayfield.js'],
                     ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/controller.js'],
                     ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/list.js'],
-                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/form.js']
+                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/form.js'],
+                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/dsview.js']
                 ]
             ];
 
