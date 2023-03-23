@@ -107,6 +107,18 @@ class Compiler implements ICompiler {
                 })
             );
 
+
+            file_put_contents(
+                TualoApplication::get('tempPath').'/form.js',
+                array_reduce(
+                    $db->direct('select js,table_name,"view_ds_form" m from view_ds_form' ), 
+                    function($acc,$item){
+                        return $acc."\n".
+                            "/* console.debug('".$item['table_name']."','".$item['m']."');*/".
+                            "\n".$item['js'];
+                })
+            );
+
             
             
             $files[] = [
@@ -120,7 +132,8 @@ class Compiler implements ICompiler {
                     ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/combobox.js'],
                     ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/displayfield.js'],
                     ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/controller.js'],
-                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/list.js']
+                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/list.js'],
+                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/form.js']
                 ]
             ];
 
