@@ -7,12 +7,10 @@ use Tualo\Office\ExtJSCompiler\ICompiler;
 
 class Compiler implements ICompiler {
     public static function getFiles(){
-
-
         $db = TualoApplication::get('session')->getDB();
-            
+        $files = [];
         if (!is_null($db)){
-            $files = [];
+            
             /*
             if(($matches['file']=='all') || ($matches['file']=='model')) $data = array_merge($data,$db->direct('select js,table_name,"view_ds_model" m from view_ds_model limit 2000 ' ));
             if(($matches['file']=='all') || ($matches['file']=='store')) $data = array_merge($data,$db->direct('select js,table_name,"view_ds_store" m from view_ds_store limit 2000 ' ));
@@ -126,7 +124,8 @@ class Compiler implements ICompiler {
                 ]
             ];
 
-            return $files;
+            
         }
+        return $files;
     }
 }
