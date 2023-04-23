@@ -129,7 +129,28 @@ class Compiler implements ICompiler {
                             "\n".$item['js'];
                 })
             );
-            
+
+
+            file_put_contents(
+                TualoApplication::get('tempPath').'/dsviewmodel.js',
+                array_reduce(
+                    $db->direct('select js,table_name,"view_ds_viewmodel" m from view_ds_viewmodel' ), 
+                    function($acc,$item){
+                        return $acc."\n".
+                            "/* console.debug('".$item['table_name']."','".$item['m']."');*/".
+                            "\n".$item['js'];
+                })
+            );
+            file_put_contents(
+                TualoApplication::get('tempPath').'/dsviewcontroller.js',
+                array_reduce(
+                    $db->direct('select js,table_name,"view_ds_controller" m from view_ds_controller' ), 
+                    function($acc,$item){
+                        return $acc."\n".
+                            "/* console.debug('".$item['table_name']."','".$item['m']."');*/".
+                            "\n".$item['js'];
+                })
+            );
             
             $files[] = [
                 'prio'=>'99999999999993',
@@ -144,6 +165,8 @@ class Compiler implements ICompiler {
                     ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/controller.js'],
                     ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/list.js'],
                     ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/form.js'],
+                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/dsviewmodel.js'],
+                    ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/dsviewcontroller.js'],
                     ['prio'=>3,'subpath'=>'','file'=>TualoApplication::get('tempPath').'/dsview.js']
                 ]
             ];
