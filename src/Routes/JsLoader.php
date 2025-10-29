@@ -1,12 +1,15 @@
 <?php
+
 namespace Tualo\Office\DSX\Routes;
 
 use Tualo\Office\Basic\TualoApplication as App;
 use Tualo\Office\Basic\Route as BasicRoute;
 use Tualo\Office\Basic\IRoute;
 
-class JsLoader implements IRoute{
-    public static function register(){
+class JsLoader extends \Tualo\Office\Basic\RouteWrapper
+{
+    public static function register()
+    {
         /*
         BasicRoute::add('/dsx/config.js',function($matches){
 
@@ -24,7 +27,7 @@ class JsLoader implements IRoute{
 
         },['get'],true);
         */
-        BasicRoute::add('/dsx/loader.js',function($matches){
+        BasicRoute::add('/dsx/loader.js', function ($matches) {
             App::contenttype('application/javascript');
             $db = App::get('session')->getDB();
             $o = [
@@ -40,12 +43,11 @@ class JsLoader implements IRoute{
                 "js/Loader.js"
             ];
 
-            $content = 'const T='.json_encode($o).';'.PHP_EOL.PHP_EOL;
-            foreach( $list as $item ){
-                $content .= file_get_contents( dirname(__DIR__,1).'/'.$item ).PHP_EOL.PHP_EOL;
+            $content = 'const T=' . json_encode($o) . ';' . PHP_EOL . PHP_EOL;
+            foreach ($list as $item) {
+                $content .= file_get_contents(dirname(__DIR__, 1) . '/' . $item) . PHP_EOL . PHP_EOL;
             }
-            App::body( $content );
-            
-        },['get'],true);
+            App::body($content);
+        }, ['get'], true);
     }
 }
