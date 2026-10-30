@@ -40,7 +40,7 @@ Mit `labels=1` (optional `language`, z.B. `DE`) liefert das Ergebnis zusätzlich
 
 ## Schreiben (`Tualo\Office\DSX\Write\RestApiSet`)
 
-PHP-Nachbau der Procedure `dsx_rest_api_set` (die Procedure bleibt bestehen, sie wird u.a. aus SQL aufgerufen).
+PHP-Nachbau der Procedure `dsx_rest_api_set`. `DSTable` sowie die `/ds/{tablename}/create`, `/update` und `/delete`-Wege verwenden die PHP-Klasse; die Procedure bleibt für direkte SQL-Aufrufer bestehen.
 
 ```php
 $result = RestApiSet::write($db, [
@@ -77,6 +77,6 @@ Abweichungen zur Procedure (bewusst):
 - delete nur mit `__id` löscht den Datensatz (Procedure: Fehler).
 - `type=replace` erzeugt ein `replace into` (Procedure: kein Statement).
 - Auto-Increment-Werte werden in `data`/`__id` zurückgegeben.
-- kein `temporary_table_name` mehr, die geschriebenen Zeilen stehen direkt in `data`.
+- kein `temporary_table_name` mehr; die API liest die betroffenen Zeilen per `__id` erneut, damit das Read-Format samt Labels erhalten bleibt.
 - kein Logging in `dsx_rest_api_set_log_statement`.
 - Datei-Cleanup erfolgt inline (`ds_files_cleanup` würde durch `DROP TABLE` implizit committen).
