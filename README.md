@@ -37,3 +37,46 @@ Spaltennamen werden gegen `ds_column` geprüft, Werte escaped. `extendedwhere` (
 `execute()` liefert weiterhin das komplette Ergebnis als Array (für PHP-Aufrufer mit kleinen Mengen).
 
 Mit `labels=1` (optional `language`, z.B. `DE`) liefert das Ergebnis zusätzlich `labels.list` und `labels.form`: die aktiven Einträge aus `ds_column_list_label` bzw. `ds_column_form_label`, sortiert nach `position`. `dataIndex` entspricht dem Schlüssel der Spalte in `data` (abhängig von `comibedfieldname`).
+
+## Schreiben (`Tualo\Office\DSX\Write\RestApiSet`)
+
+PHP-Nachbau der Procedure `dsx_rest_api_set` (die Procedure bleibt bestehen, sie wird u.a. aus SQL aufgerufen).
+
+```php
+$result = RestApiSet::write($db, [
+    'tablename' => 'korrespondenz_typen',
+    'type' => 'insert',            // insert | update | delete | replace
+    'update' => true,              // optional: insert ... on duplicate key update
+    'ignore' => false,             // optional: insert ignore
+    'replace' => false,            // optional: replace into
+    'useInsertUpdate' => false,    // optional: update als insert ... on duplicate key update
+    'data' => [['__id' => 'ext-1', 'name' => 'Brief']],
+]);
+// ['success'=>true,'message'=>'OK','tablename'=>..,'writetable'=>..,'type'=>..,'subtype'=>..,
+//  'affected_rows'=>1,'data'=>[['__clientid'=>'ext-1','__id'=>'7','id'=>7,'name'=>'Brief', ...]]]
+```
+
+Klassen:
+
+| Klasse | Aufgabe |
+|---|---|
+| `WriteRequest` | Validierung (errno 1001, gleiche Meldungen wie die Procedure), Typ/Subtyp, benötigte Rechte |
+| `WriteDefinition` | `ds.writetable`, `ds_column` der Schreibtabelle, Defaults (`{#serial}`, `{:expr}`, `{GUID}`, `{DATETIME}`, ...), Schlüsselbedingungen |
+| `DataPreparer` | Typkonvertierung der Daten per `json_table` (gleiche Semantik wie die Procedure), Defaults, Serials |
+| `StatementWriter` | insert/replace/ignore/ODKU (gechunkt), update je Zeile, delete per Tupel-Liste |
+| `FileDataHandler` | `__file_*`-Felder → `ds_files`/`ds_files_data`, Verknüpfung über `file_id`, Aufräumen alter Dateien |
+| `Transaction` | eigene Transaktion bzw. Savepoint, falls bereits eine Transaktion offen ist |
+
+Rechte: `ds_access` (`write` für update, `append` für insert, `delete` für delete) über `Read\AccessControl::can()`.
+Spaltennamen werden ausschließlich aus `ds_column` übernommen, Werte werden escaped.
+
+Abweichungen zur Procedure (bewusst):
+
+- update setzt nur die gesendeten Spalten; Primärschlüssel werden nicht mehr über Defaults überschrieben.
+- update ohne `__id` aktualisiert über die gesendeten Schlüsselspalten (Procedure: keine Änderung).
+- delete nur mit `__id` löscht den Datensatz (Procedure: Fehler).
+- `type=replace` erzeugt ein `replace into` (Procedure: kein Statement).
+- Auto-Increment-Werte werden in `data`/`__id` zurückgegeben.
+- kein `temporary_table_name` mehr, die geschriebenen Zeilen stehen direkt in `data`.
+- kein Logging in `dsx_rest_api_set_log_statement`.
+- Datei-Cleanup erfolgt inline (`ds_files_cleanup` würde durch `DROP TABLE` implizit committen).
