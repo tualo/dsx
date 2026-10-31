@@ -129,7 +129,45 @@ class ErrorLogger
             $details['ds_access_table_info_error'] = $tableCheckError->getMessage();
         }
 
+        try {
+            $connectionCheckSQL = '
+            SELECT
+                CONNECTION_ID() AS connection_id,
+                @@autocommit AS autocommit,
+                @@in_transaction AS in_transaction,
+                @@sql_mode AS sql_mode
+            ';
+            $info = array_merge($info, ['connection_check' => $db->direct($connectionCheckSQL, [])]);
+        } catch (\Throwable $connectionCheckError) {
+            $info['connection_check_error'] = $connectionCheckError->getMessage();
+        }
 
+        try {
+            $showCreateTableSQL = 'SHOW CREATE TABLE fb_wvd.ds_access';
+            $info = array_merge($info, ['show_create_table' => $db->direct($showCreateTableSQL, [])]);
+        } catch (\Throwable $showCreateTableError) {
+            $info['show_create_table_error'] = $showCreateTableError->getMessage();
+        }
+
+        try {
+            $showOpenTablesSQL = 'SHOW OPEN TABLES FROM fb_wvd LIKE "ds_access"';
+            $info = array_merge($info, ['show_open_tables' => $db->direct($showOpenTablesSQL, [])]);
+        } catch (\Throwable $showOpenTablesError) {
+            $info['show_open_tables_error'] = $showOpenTablesError->getMessage();
+        }
+
+
+        try {
+
+            $db->direct('ROLLBACK', []);
+            $rollbackTestSQL = '
+            SELECT 1 FROM fb_wvd.ds_access LIMIT 1;
+            ';
+
+            $info = array_merge($info,  ['rollback_test' => $db->direct($rollbackTestSQL, [])]);
+        } catch (\Throwable $rollbackTestError) {
+            $info['rollback_test_error'] = $rollbackTestError->getMessage();
+        }
 
 
         try {
