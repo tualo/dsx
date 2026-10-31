@@ -60,6 +60,7 @@ class ErrorLogger
         } elseif (is_object($db) && is_callable([$db, 'singleValue'])) {
             try {
                 $context['galera_hostname'] = $db->singleValue('SELECT @@hostname v', [], 'v');
+                $context['extended_info'] = self::extendedInfo($db);
             } catch (\Throwable $diagnosticError) {
                 $context['galera_hostname_error'] = get_class($diagnosticError) . ': ' . $diagnosticError->getMessage();
             } finally {
@@ -74,5 +75,32 @@ class ErrorLogger
             error_log('dstable logging failed: ' . $loggingError->getMessage()
                 . '; ' . $operation . ' on ' . $tablename . ': ' . $error->getMessage());
         }
+    }
+    public static function extendedInfo(mixed $db)
+    {
+        $info = [];
+        $infoSQL = '
+        SELECT
+            @@hostname AS server,
+            @@port AS port,
+            DATABASE() AS database,
+            @@lower_case_table_names AS lower_case_table_names,
+            @@GLOBAL.wsrep_on AS wsrep_global,
+            @@SESSION.wsrep_on AS wsrep_session,
+            @@SESSION.wsrep_OSU_method AS schema_methode
+        ';
+        $info = array_merge($info,  $db->singleRow($infoSQL, []));
+
+        $statusSQL = '
+        SHOW GLOBAL STATUS
+        WHERE Variable_name IN (
+            "wsrep_local_state_comment",
+            "wsrep_cluster_size",
+            "wsrep_cluster_status",
+            "wsrep_ready"
+        );
+        ';
+        $info = array_merge($info,  $db->singleRow($statusSQL, []));
+        return $info;
     }
 }
