@@ -91,6 +91,7 @@ class ErrorLogger
         ';
         $info = array_merge($info,  $db->singleRow($infoSQL, []));
 
+        /*
         $statusSQL = '
         SHOW GLOBAL STATUS
         WHERE Variable_name IN (
@@ -98,9 +99,10 @@ class ErrorLogger
             "wsrep_cluster_size",
             "wsrep_cluster_status",
             "wsrep_ready"
-        );
+        )
         ';
         $info = array_merge($info,  $db->singleRow($statusSQL, []));
+        */
         return $info;
     }
 }
