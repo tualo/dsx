@@ -129,7 +129,6 @@ class ErrorLogger
             $details['ds_access_table_info_error'] = $tableCheckError->getMessage();
         }
 
-        $info = array_merge($info,  $details);
 
 
 
@@ -153,6 +152,7 @@ class ErrorLogger
             $details['fresh_connection_error'] = $probeError->getMessage();
         }
 
+        $info = array_merge($info,  $details);
 
 
         return $info;
