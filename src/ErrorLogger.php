@@ -89,9 +89,8 @@ class ErrorLogger
             @@SESSION.wsrep_on AS wsrep_session,
             @@SESSION.wsrep_OSU_method AS schema_methode
         ';
-        $info = array_merge($info,  $db->singleRow($infoSQL, []));
+        $info = array_merge($info,  $db->direct($infoSQL, []));
 
-        /*
         $statusSQL = '
         SHOW GLOBAL STATUS
         WHERE Variable_name IN (
@@ -101,8 +100,8 @@ class ErrorLogger
             "wsrep_ready"
         )
         ';
-        $info = array_merge($info,  $db->singleRow($statusSQL, []));
-        */
+        $info = array_merge($info,  $db->direct($statusSQL, []));
+
         return $info;
     }
 }
