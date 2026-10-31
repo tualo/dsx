@@ -3,6 +3,7 @@
 namespace Tualo\Office\DSX\Read;
 
 use Tualo\Office\Basic\MYSQL\Database;
+use Tualo\Office\Basic\TualoApplication as App;
 
 /**
  * PHP implementation of the stored procedure dsx_rest_api_get.
@@ -16,6 +17,7 @@ use Tualo\Office\Basic\MYSQL\Database;
  *
  * Returns the same structure as the procedure:
  *   [data, success, msg, total, order_by, (debug_query), (query, limitterm if nodata=1)]
+ *   plus [debug_sql, (debug_count_sql)] if [ds] return_sql=1
  *   plus [labels => [list => [...], form => [...]]] if labels=1
  */
 class RestApiGet
@@ -372,6 +374,11 @@ class RestApiGet
             if (self::is($request, 'count', 1)) {
                 $countSql = 'select count(0) c from (' . $baseQuery . ') x';
             }
+        }
+
+        if (App::configuration('ds', 'return_sql', '0') == '1') {
+            $result['debug_sql'] = $dataSql;
+            if (!is_null($countSql)) $result['debug_count_sql'] = $countSql;
         }
 
         // $result['order_by'] = $orderBy;

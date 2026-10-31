@@ -24,6 +24,36 @@ $result = \Tualo\Office\DSX\Read\RestApiGet::read($db, [
 
 Spaltennamen werden gegen `ds_column` geprüft, Werte escaped. `extendedwhere` (rohes SQL) wird nur mit `new RestApiGet($db, true)` ausgewertet.
 
+### SQL-Debugging
+
+Die SQL-Ausgabe wird in der Anwendungskonfiguration
+`configuration/.htconfig` aktiviert:
+
+```ini
+[ds]
+return_sql=1
+```
+
+Diese bereits von `DSReadRoute` verwendete Einstellung ist standardmäßig
+deaktiviert (`0`). Wenn sie aktiviert ist, enthält die Read-Antwort
+`debug_sql` mit der vollständigen Datenabfrage einschließlich Filter,
+Sortierung und Limit. Bei `count=1` enthält `debug_count_sql` die separate
+Zählabfrage, sofern `nodata` nicht aktiviert ist. Die Einstellung gilt für
+`/ds/{tablename}/read`, `/dsx/{tablename}/read`, Streaming und direkte
+`RestApiGet::read()`-Aufrufe. Ein Anfrageparameter `debug_sql` hat keinen
+Einfluss darauf.
+
+Der bestehende Anfrageparameter `debug_query=1` liefert unabhängig von dieser
+Einstellung weiterhin `debug_query` mit der Basisabfrage. Bei `nodata=1` wird
+keine Datenabfrage ausgeführt: `debug_sql` ist dann bei aktivierter Einstellung
+`null`, während wie bisher `query` und `limitterm` zurückgegeben werden.
+
+Die Abfragen können Tabellen- und Spaltennamen sowie Filter- und Suchwerte
+enthalten. `return_sql=1` gibt diese Daten bei allen betroffenen Reads aus und
+sollte nur für vertrauenswürdige Diagnosen aktiviert werden. Der Regressionstest
+kann ohne Datenbank mit `php tests/Read/RestApiGetDebugTest.php` ausgeführt
+werden.
+
 ### Streaming
 
 `RestApiGet::stream($request, $write, $trailer)` liest die Zeilen ungepuffert (`Database::directIterate()`, `MYSQLI_USE_RESULT`) und schreibt das JSON zeilenweise – der Speicherbedarf ist unabhängig von der Ergebnisgröße. Die Routen nutzen dafür `StreamResponse::send()`.
