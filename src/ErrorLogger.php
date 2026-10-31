@@ -131,10 +131,29 @@ class ErrorLogger
 
         $info = array_merge($info,  $details);
 
-        error_log(json_encode(
-            $details,
-            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-        ));
+
+
+        try {
+            // Direkt zum betroffenen Knoten, ohne ERP-Initialisierung.
+            // Kein "p:" vor dem Hostnamen verwenden.
+            $probe = App::get('session')->getDB(true)->mysqli;
+
+            $details['fresh_connection'] = $probe->query(
+                'SELECT @@hostname AS server, CONNECTION_ID() AS connection_id'
+            )->fetch_assoc();
+
+            $probe->query(
+                'SELECT 1 FROM `fb_wvd`.`ds_access` LIMIT 1'
+            )->free();
+
+            $details['fresh_connection_readable'] = true;
+            $probe->close();
+        } catch (\mysqli_sql_exception $probeError) {
+            $details['fresh_connection_readable'] = false;
+            $details['fresh_connection_error'] = $probeError->getMessage();
+        }
+
+
 
         return $info;
     }
