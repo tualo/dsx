@@ -58,14 +58,16 @@ class ErrorLogger
         if ($connectionBusy) {
             $context['galera_hostname_skipped'] = 'Unbuffered read may still be active';
         } elseif (is_object($db) && is_callable([$db, 'singleValue'])) {
-            try {
-                $context['galera_hostname'] = $db->singleValue('SELECT @@hostname v', [], 'v');
-                $context['extended_info'] = self::extendedInfo($db);
-            } catch (\Throwable $diagnosticError) {
-                $context['galera_hostname_error'] = get_class($diagnosticError) . ': ' . $diagnosticError->getMessage();
-            } finally {
-                if ($lastSql !== null) $db->last_sql = $lastSql;
-                if ($lastSQL !== null) $db->lastSQL = $lastSQL;
+            if (App::configuration('galera', 'extended_error_info', 0) == '1') {
+                try {
+                    $context['galera_hostname'] = $db->singleValue('SELECT @@hostname v', [], 'v');
+                    $context['extended_info'] = self::extendedInfo($db);
+                } catch (\Throwable $diagnosticError) {
+                    $context['galera_hostname_error'] = get_class($diagnosticError) . ': ' . $diagnosticError->getMessage();
+                } finally {
+                    if ($lastSql !== null) $db->last_sql = $lastSql;
+                    if ($lastSQL !== null) $db->lastSQL = $lastSQL;
+                }
             }
         }
 
@@ -101,6 +103,25 @@ class ErrorLogger
         )
         ';
         $info = array_merge($info,  $db->direct($statusSQL, []));
+
+        $details = [];
+        try {
+            $resultCheck = $db->mysqli->query(
+                'SELECT 1 FROM `fb_wvd`.`ds_access` LIMIT 1'
+            );
+            $details['ds_access_readable_immediately_after'] = true;
+            $resultCheck->free();
+        } catch (\mysqli_sql_exception $checkError) {
+            $details['ds_access_readable_immediately_after'] = false;
+            $details['check_error'] = $checkError->getMessage();
+        }
+
+        $info = array_merge($info,  $details);
+
+        error_log(json_encode(
+            $details,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        ));
 
         return $info;
     }
