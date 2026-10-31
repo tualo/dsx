@@ -94,14 +94,14 @@ class ErrorLogger
         $info = array_merge($info,  $db->direct($infoSQL, []));
 
         $statusSQL = '
-        SHOW GLOBAL STATUS
-        WHERE Variable_name IN (
-            "wsrep_local_state_comment",
-            "wsrep_cluster_size",
-            "wsrep_cluster_status",
-            "wsrep_ready"
-        )
-        ';
+            SHOW GLOBAL STATUS
+            WHERE Variable_name IN (
+                "wsrep_local_state_comment",
+                "wsrep_cluster_size",
+                "wsrep_cluster_status",
+                "wsrep_ready"
+            )
+            ';
         $info = array_merge($info,  $db->direct($statusSQL, []));
 
         $details = [];
@@ -114,6 +114,19 @@ class ErrorLogger
         } catch (\mysqli_sql_exception $checkError) {
             $details['ds_access_readable_immediately_after'] = false;
             $details['check_error'] = $checkError->getMessage();
+        }
+
+        try {
+            $tableCheckSQL = '
+            SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE, ENGINE
+            FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = "fb_wvd"
+              AND TABLE_NAME = "ds_access"
+            ';
+            $tableCheckResult = $db->direct($tableCheckSQL, []);
+            $details['ds_access_table_info'] = $tableCheckResult;
+        } catch (\Throwable $tableCheckError) {
+            $details['ds_access_table_info_error'] = $tableCheckError->getMessage();
         }
 
         $info = array_merge($info,  $details);
