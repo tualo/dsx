@@ -170,6 +170,17 @@ class ErrorLogger
         }
 
 
+        // temptest: Drop temporary table if exists and check for warnings and select test
+        try {
+            $info = array_merge($info, ['temp_test_drop' => $db->direct('DROP TEMPORARY TABLE IF EXISTS fb_wvd.ds_access', [])]);
+            $info = array_merge($info, ['temp_test_warnings' => $db->direct('SHOW WARNINGS', [])]);
+            $info = array_merge($info, ['temp_test_select' => $db->direct('SELECT 1 FROM fb_wvd.ds_access LIMIT 1', [])]);
+        } catch (\Throwable $tempTestError) {
+            $info['temp_test_error'] = $tempTestError->getMessage();
+        }
+
+
+
         try {
             // Direkt zum betroffenen Knoten, ohne ERP-Initialisierung.
             // Kein "p:" vor dem Hostnamen verwenden.
