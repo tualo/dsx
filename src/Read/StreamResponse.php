@@ -3,6 +3,7 @@
 namespace Tualo\Office\DSX\Read;
 
 use Tualo\Office\Basic\TualoApplication as App;
+use Tualo\Office\DSX\ErrorLogger;
 
 /**
  * Sends a RestApiGet result directly to the client (JSON stream).
@@ -32,7 +33,14 @@ class StreamResponse
             echo $chunk;
             flush();
         };
-        (new RestApiGet($db))->stream($request, $write, fn(): array => self::trailer($trailer));
+        try {
+            $reader = new RestApiGet($db);
+        } catch (\Throwable $error) {
+            $tablename = $request['tablename'] ?? '';
+            ErrorLogger::log($db, 'read', is_string($tablename) ? $tablename : '', $error);
+            throw $error;
+        }
+        $reader->stream($request, $write, fn(): array => self::trailer($trailer));
     }
 
     /**

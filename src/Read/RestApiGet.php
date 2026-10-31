@@ -4,6 +4,7 @@ namespace Tualo\Office\DSX\Read;
 
 use Tualo\Office\Basic\MYSQL\Database;
 use Tualo\Office\Basic\TualoApplication as App;
+use Tualo\Office\DSX\ErrorLogger;
 
 /**
  * PHP implementation of the stored procedure dsx_rest_api_get.
@@ -97,16 +98,24 @@ class RestApiGet
 
     public function execute(array $request): array
     {
-        $prepared = $this->prepare($request);
-        $result = $prepared['result'];
-        if (!is_null($prepared['dataSql'])) {
-            $result['total'] = $this->total($prepared);
-            $result['data'] = iterator_to_array($this->rows($prepared), false);
-            if (is_null($result['total'])) {
-                $result = array_merge($result, self::totalFromRows($prepared, count($result['data'])));
+        $readingRows = false;
+        try {
+            $prepared = $this->prepare($request);
+            $result = $prepared['result'];
+            if (!is_null($prepared['dataSql'])) {
+                $result['total'] = $this->total($prepared);
+                $readingRows = true;
+                $result['data'] = iterator_to_array($this->rows($prepared), false);
+                $readingRows = false;
+                if (is_null($result['total'])) {
+                    $result = array_merge($result, self::totalFromRows($prepared, count($result['data'])));
+                }
             }
+            return $result;
+        } catch (\Throwable $error) {
+            $this->logError($request, $error, $readingRows);
+            throw $error;
         }
-        return $result;
     }
 
     /**
@@ -141,53 +150,74 @@ class RestApiGet
      */
     public function stream(array $request, ?callable $write = null, ?callable $trailer = null): void
     {
-        $write = $write ?? function (string $chunk): void {
-            echo $chunk;
-            flush();
-        };
-        $prepared = $this->prepare($request);
-        $result = $prepared['result'];
-
-        if (is_null($prepared['dataSql'])) {
-            if (!is_null($trailer)) $result = array_merge($result, $trailer());
-            $write(self::json($result));
-            return;
-        }
-
-        $total = $this->total($prepared);
-
-        $rows = $this->rows($prepared);
-        // starts the query, an invalid statement throws before anything is written
-        $rows->current();
-
-        unset($result['data'], $result['success'], $result['msg'], $result['total']);
-        // a known total is sent first, otherwise it is calculated after the rows
-        if (!is_null($total)) $result = ['total' => $total] + $result;
-        // an empty array would be encoded as "[]", the head has to be an object
-        $head = count($result) == 0 ? '{' : substr(self::json((object)$result), 0, -1) . ',';
-        $write($head . '"data":[');
-
-        $success = true;
-        $msg = '';
-        $buffer = '';
-        $count = 0;
+        $readingRows = false;
         try {
-            for (; $rows->valid(); $rows->next()) {
-                $buffer .= ($count++ == 0 ? '' : ',') . self::json($rows->current());
-                if (strlen($buffer) > 65536) {
-                    $write($buffer);
-                    $buffer = '';
-                }
-            }
-        } catch (\Throwable $e) {
-            $success = false;
-            $msg = $e->getMessage();
-        }
+            $write = $write ?? function (string $chunk): void {
+                echo $chunk;
+                flush();
+            };
+            $prepared = $this->prepare($request);
+            $result = $prepared['result'];
 
-        $tail = ['success' => $success, 'msg' => $msg];
-        if (is_null($total)) $tail = self::totalFromRows($prepared, $count) + $tail;
-        if (!is_null($trailer)) $tail = array_merge($tail, $trailer());
-        $write($buffer . '],' . substr(self::json($tail), 1));
+            if (is_null($prepared['dataSql'])) {
+                if (!is_null($trailer)) $result = array_merge($result, $trailer());
+                $write(self::json($result));
+                return;
+            }
+
+            $total = $this->total($prepared);
+
+            $rows = $this->rows($prepared);
+            // starts the query, an invalid statement throws before anything is written
+            $readingRows = true;
+            try {
+                $rows->current();
+            } catch (\Throwable $error) {
+                // An uncaught generator error closes the unbuffered result.
+                $readingRows = false;
+                throw $error;
+            }
+
+            unset($result['data'], $result['success'], $result['msg'], $result['total']);
+            // a known total is sent first, otherwise it is calculated after the rows
+            if (!is_null($total)) $result = ['total' => $total] + $result;
+            // an empty array would be encoded as "[]", the head has to be an object
+            $head = count($result) == 0 ? '{' : substr(self::json((object)$result), 0, -1) . ',';
+            $write($head . '"data":[');
+
+            $success = true;
+            $msg = '';
+            $buffer = '';
+            $count = 0;
+            try {
+                for (; $rows->valid(); $rows->next()) {
+                    $buffer .= ($count++ == 0 ? '' : ',') . self::json($rows->current());
+                    if (strlen($buffer) > 65536) {
+                        $write($buffer);
+                        $buffer = '';
+                    }
+                }
+            } catch (\Throwable $error) {
+                $this->logError($request, $error, true);
+                $success = false;
+                $msg = $error->getMessage();
+            }
+            if ($success) $readingRows = false;
+
+            $tail = ['success' => $success, 'msg' => $msg];
+            if (is_null($total)) $tail = self::totalFromRows($prepared, $count) + $tail;
+            if (!is_null($trailer)) $tail = array_merge($tail, $trailer());
+            $write($buffer . '],' . substr(self::json($tail), 1));
+        } catch (\Throwable $error) {
+            $this->logError($request, $error, $readingRows);
+            throw $error;
+        }
+    }
+
+    private function logError(array $request, \Throwable $error, bool $connectionBusy): void
+    {
+        $tablename = $request['tablename'] ?? '';
+        ErrorLogger::log($this->db, 'read', is_string($tablename) ? $tablename : '', $error, $connectionBusy);
     }
 
     private static function json(mixed $value): string

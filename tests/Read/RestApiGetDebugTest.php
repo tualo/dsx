@@ -9,6 +9,13 @@ namespace Tualo\Office\Basic {
         {
             return self::$settings[$section][$key] ?? $defaultReturn;
         }
+
+        public static function logger(string $channel): object
+        {
+            return new class {
+                public function error(string $message, array $context): void {}
+            };
+        }
     }
 }
 
@@ -52,8 +59,9 @@ namespace Tualo\Office\Basic\MYSQL {
             ];
         }
 
-        public function singleValue(string $sql, array $parameters = [], string $key = ''): int
+        public function singleValue(string $sql, array $parameters = [], string $key = ''): int|string
         {
+            if ($sql === 'SELECT @@hostname v') return 'test-node';
             $this->countStatements[] = $sql;
             return 7;
         }
@@ -69,13 +77,19 @@ namespace Tualo\Office\Basic\MYSQL {
             return addslashes($value);
         }
     }
+
+    class DebugTestDatabase extends Database
+    {
+        public function __construct() {}
+    }
 }
 
 namespace {
-    use Tualo\Office\Basic\MYSQL\Database;
+    use Tualo\Office\Basic\MYSQL\DebugTestDatabase as Database;
     use Tualo\Office\Basic\TualoApplication as App;
     use Tualo\Office\DSX\Read\RestApiGet;
 
+    require_once dirname(__DIR__, 2) . '/src/ErrorLogger.php';
     $readPath = dirname(__DIR__, 2) . '/src/Read/';
     foreach (['SqlQuoter', 'AccessControl', 'TableDefinition', 'FilterBuilder', 'SortBuilder', 'RestApiGet'] as $class) {
         require_once $readPath . $class . '.php';
