@@ -107,7 +107,7 @@ class ErrorLogger
         $details = [];
         try {
             $resultCheck = $db->mysqli->query(
-                'SELECT 1 FROM `fb_wvd`.`ds_access` LIMIT 1'
+                'SELECT 1 FROM `ds_access` LIMIT 1'
             );
             $details['ds_access_readable_immediately_after'] = true;
             $resultCheck->free();
@@ -120,7 +120,7 @@ class ErrorLogger
             $tableCheckSQL = '
             SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE, ENGINE
             FROM information_schema.TABLES
-            WHERE TABLE_SCHEMA = "fb_wvd"
+            WHERE TABLE_SCHEMA = DATABASE()
               AND TABLE_NAME = "ds_access"
             ';
             $tableCheckResult = $db->direct($tableCheckSQL, []);
@@ -143,14 +143,14 @@ class ErrorLogger
         }
 
         try {
-            $showCreateTableSQL = 'SHOW CREATE TABLE fb_wvd.ds_access';
+            $showCreateTableSQL = 'SHOW CREATE TABLE ds_access';
             $info = array_merge($info, ['show_create_table' => $db->direct($showCreateTableSQL, [])]);
         } catch (\Throwable $showCreateTableError) {
             $info['show_create_table_error'] = $showCreateTableError->getMessage();
         }
 
         try {
-            $showOpenTablesSQL = 'SHOW OPEN TABLES FROM fb_wvd LIKE "ds_access"';
+            $showOpenTablesSQL = 'SHOW OPEN TABLES FROM ' . $db->db_name . ' LIKE "ds_access"';
             $info = array_merge($info, ['show_open_tables' => $db->direct($showOpenTablesSQL, [])]);
         } catch (\Throwable $showOpenTablesError) {
             $info['show_open_tables_error'] = $showOpenTablesError->getMessage();
@@ -161,7 +161,7 @@ class ErrorLogger
 
             $db->direct('ROLLBACK', []);
             $rollbackTestSQL = '
-            SELECT 1 FROM fb_wvd.ds_access LIMIT 1;
+            SELECT 1 FROM ' . $db->db_name . '.ds_access LIMIT 1;
             ';
 
             $info = array_merge($info,  ['rollback_test' => $db->direct($rollbackTestSQL, [])]);
@@ -172,9 +172,9 @@ class ErrorLogger
 
         // temptest: Drop temporary table if exists and check for warnings and select test
         try {
-            $info = array_merge($info, ['temp_test_drop' => $db->direct('DROP TEMPORARY TABLE IF EXISTS fb_wvd.ds_access', [])]);
+            $info = array_merge($info, ['temp_test_drop' => $db->direct('DROP TEMPORARY TABLE IF EXISTS ' . $db->db_name . '.ds_access', [])]);
             $info = array_merge($info, ['temp_test_warnings' => $db->direct('SHOW WARNINGS', [])]);
-            $info = array_merge($info, ['temp_test_select' => $db->direct('SELECT 1 FROM fb_wvd.ds_access LIMIT 1', [])]);
+            $info = array_merge($info, ['temp_test_select' => $db->direct('SELECT 1 FROM ' . $db->db_name . '.ds_access LIMIT 1', [])]);
         } catch (\Throwable $tempTestError) {
             $info['temp_test_error'] = $tempTestError->getMessage();
         }
@@ -191,7 +191,7 @@ class ErrorLogger
             )->fetch_assoc();
 
             $probe->query(
-                'SELECT 1 FROM `fb_wvd`.`ds_access` LIMIT 1'
+                'SELECT 1 FROM `' . $db->db_name . '`.`ds_access` LIMIT 1'
             )->free();
 
             $details['fresh_connection_readable'] = true;

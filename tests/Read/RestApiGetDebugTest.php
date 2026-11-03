@@ -22,6 +22,7 @@ namespace Tualo\Office\Basic {
 namespace Tualo\Office\Basic\MYSQL {
     class Database
     {
+        public object $mysqli;
         public bool $readAllowed = true;
         public array $dataStatements = [];
         public array $countStatements = [];
@@ -72,6 +73,11 @@ namespace Tualo\Office\Basic\MYSQL {
             yield from $this->rows;
         }
 
+        public function getWarnings(): array
+        {
+            return [];
+        }
+
         public function escape_string(string $value): string
         {
             return addslashes($value);
@@ -80,7 +86,12 @@ namespace Tualo\Office\Basic\MYSQL {
 
     class DebugTestDatabase extends Database
     {
-        public function __construct() {}
+        public function __construct()
+        {
+            $this->mysqli = new class {
+                public int $warning_count = 0;
+            };
+        }
     }
 }
 

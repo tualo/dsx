@@ -142,6 +142,11 @@ namespace Tualo\Office\Basic\MYSQL {
             }
         }
 
+        public function getWarnings(): array
+        {
+            return [];
+        }
+
         public function escape_string(string $value): string
         {
             return addslashes($value);
@@ -150,7 +155,12 @@ namespace Tualo\Office\Basic\MYSQL {
 
     class ReadLoggingTestDatabase extends Database
     {
-        public function __construct() {}
+        public function __construct()
+        {
+            $this->mysqli = new class {
+                public int $warning_count = 0;
+            };
+        }
     }
 }
 

@@ -161,7 +161,9 @@ class WriteDefinition
         $isText = in_array($col['data_type'], ['char', 'longtext', 'varchar'], true);
 
         if (strlen($default) >= 3 && str_starts_with($default, '{:') && str_ends_with($default, '}')) {
-            $expr = substr($default, 2, -1);
+            // cast to char: functions with their own type (e.g. uuid() since MariaDB 10.7) would
+            // otherwise coerce the whole expression to that type and turn the sent value into null
+            $expr = 'cast((' . substr($default, 2, -1) . ') as char)';
             return $isText
                 ? 'if(' . $valueSql . ' is null or ' . $valueSql . ' = \'\', ' . $expr . ', ' . $valueSql . ')'
                 : 'ifnull(' . $valueSql . ', ' . $expr . ')';
@@ -174,7 +176,8 @@ class WriteDefinition
             case '{TIME}':
                 return 'ifnull(' . $valueSql . ', curtime())';
             case '{GUID}':
-                return 'if(' . $valueSql . ' is null or ' . $valueSql . ' = \'\', uuid(), ' . $valueSql . ')';
+                // cast: the UUID type of uuid() must not coerce the sent varchar value to null
+                return 'if(' . $valueSql . ' is null or ' . $valueSql . ' = \'\', cast(uuid() as char), ' . $valueSql . ')';
         }
         if ($default !== '' && $default[0] !== '{' && trim($default) !== '') {
             return 'ifnull(' . $valueSql . ', ' . $quoter->string($default) . ')';

@@ -231,7 +231,38 @@ class RestApiGet
     private function total(array $prepared): ?int
     {
         if (is_null($prepared['countSql'])) return null;
-        return (int)$this->db->singleValue($prepared['countSql'], [], 'c');
+        $total = (int)$this->db->singleValue($prepared['countSql'], [], 'c');
+        self::assertAggregateNotTruncated($this->db->getWarnings());
+        return $total;
+    }
+
+    private static function assertAggregateNotTruncated(array $warnings): void
+    {
+        foreach ($warnings as $warning) {
+            if (($warning['errno'] ?? null) == 1260) {
+                throw new \RuntimeException(
+                    'Das Datenbankergebnis wurde durch group_concat_max_len abgeschnitten: '
+                    . ($warning['message'] ?? 'MariaDB-Warnung 1260'),
+                    1260
+                );
+            }
+        }
+    }
+
+    private function unbufferedWarnings(): array
+    {
+        $connection = $this->db->mysqli;
+        if ($connection->warning_count === 0) return [];
+
+        $warning = $connection->get_warnings();
+        if ($warning === false) {
+            throw new \RuntimeException('Datenbankwarnungen konnten nicht abgerufen werden.');
+        }
+        $warnings = [];
+        do {
+            $warnings[] = ['errno' => $warning->errno, 'message' => $warning->message];
+        } while ($warning->next());
+        return $warnings;
     }
 
     /**
@@ -240,7 +271,8 @@ class RestApiGet
      */
     private function rows(array $prepared): \Generator
     {
-        $rows = method_exists($this->db, 'directIterate')
+        $unbuffered = method_exists($this->db, 'directIterate');
+        $rows = $unbuffered
             ? $this->db->directIterate($prepared['dataSql'])
             : (function () use ($prepared) {
                 $rows = $this->db->direct($prepared['dataSql']);
@@ -251,6 +283,9 @@ class RestApiGet
         foreach ($rows as $row) {
             yield $mapper($row);
         }
+        self::assertAggregateNotTruncated($this->db->getWarnings());
+        // Unbuffered warnings are available only after the result is closed.
+        if ($unbuffered) self::assertAggregateNotTruncated($this->unbufferedWarnings());
     }
 
     /**

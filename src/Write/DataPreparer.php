@@ -44,7 +44,8 @@ class DataPreparer
             $jtColumns[] = '`__file_type` varchar(255) path \'$.__file_type\' null on empty';
             $select[] = 'jt.`__file_data`';
             $select[] = 'jt.`__file_name`';
-            $select[] = 'if(ifnull(jt.`__file_id`, \'\') = \'\', uuid(), jt.`__file_id`) `__file_id`';
+            // cast: the UUID type of uuid() must not coerce a sent varchar file id to null
+            $select[] = 'if(ifnull(jt.`__file_id`, \'\') = \'\', cast(uuid() as char), jt.`__file_id`) `__file_id`';
             $select[] = 'jt.`__file_type`';
         }
 

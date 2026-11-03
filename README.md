@@ -64,13 +64,19 @@ werden.
 - `StreamResponse` hängt am Ende wie `App::end()` die Felder `errors` und `warnings` aus `App::result()` an (Stand nach dem Schreiben der Zeilen).
 - Ohne `count=1` wird `total` aus den gelesenen Zeilen berechnet (`start` + Anzahl Zeilen) und steht mit `has_more` hinter `data`. `has_more: true` heißt: die Seite ist voll (Zeilen = `limit`), es kann weitere geben; bei weniger Zeilen ist das Ende erreicht. Mit `count=1` steht das per SQL gezählte `total` wie bisher am Anfang, `has_more` entfällt.
 - Während des Lesens darf auf derselben Verbindung keine andere Abfrage laufen.
+- `group_concat_max_len` bleibt unverändert. MariaDB-Warnung 1260 wegen eines
+  abgeschnittenen `GROUP_CONCAT`- oder `JSON_ARRAYAGG`-Ergebnisses wird nach
+  vollständigem Lesen des ungepufferten Resultsets als Fehler gemeldet und
+  protokolliert. Beim Streaming kann `data` dann bereits ausgegebene Zeilen
+  enthalten; entscheidend ist `"success": false`.
 
 `execute()` liefert weiterhin das komplette Ergebnis als Array (für PHP-Aufrufer mit kleinen Mengen).
 
 Mit `labels=1` (optional `language`, z.B. `DE`) liefert das Ergebnis zusätzlich `labels.list` und `labels.form`: die aktiven Einträge aus `ds_column_list_label` bzw. `ds_column_form_label`, sortiert nach `position`. `dataIndex` entspricht dem Schlüssel der Spalte in `data` (abhängig von `comibedfieldname`).
 
 Die Fehlerprotokollierung kann ohne Datenbank mit
-`php tests/Read/ReadErrorLoggingTest.php` getestet werden.
+`php tests/Read/ReadErrorLoggingTest.php` getestet werden. Die Behandlung von
+Aggregatwarnungen prüft `php tests/Read/AggregateWarningTest.php`.
 
 ## Schreiben (`Tualo\Office\DSX\Write\RestApiSet`)
 
