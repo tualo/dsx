@@ -242,7 +242,7 @@ class RestApiGet
             if (($warning['errno'] ?? null) == 1260) {
                 throw new \RuntimeException(
                     'Das Datenbankergebnis wurde durch group_concat_max_len abgeschnitten: '
-                    . ($warning['message'] ?? 'MariaDB-Warnung 1260'),
+                        . ($warning['message'] ?? 'MariaDB-Warnung 1260'),
                     1260
                 );
             }
@@ -330,7 +330,8 @@ class RestApiGet
             $request['filter_by_search'] = 1;
         }
 
-        if (!is_null($search)) {
+        $usesFulltext = self::is($request, 'fulltext', 1) || self::is($request, 'fulltext', 2);
+        if (!is_null($search) && !$usesFulltext) {
             $searchField = $definition->getSearchField();
             if (array_key_exists('searchfield', $request) && !is_null($request['searchfield'])) {
                 $searchField = is_string($request['searchfield']) ? $request['searchfield'] : null;
@@ -349,11 +350,6 @@ class RestApiGet
             // like the procedure: a missing "fulltext" leads to the late filter
             if (self::is($request, 'filter_by_search', 1) && self::is($request, 'fulltext', 0)) {
                 array_unshift($filter, $searchFilter);
-            } else if (
-                self::is($request, 'filter_by_search', 2)
-                && (self::is($request, 'fulltext', 1) || self::is($request, 'fulltext', 2))
-            ) {
-                // search is done by the fulltext join only
             } else {
                 $lateFilter[] = $searchFilter;
             }

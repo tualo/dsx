@@ -24,6 +24,7 @@ namespace Tualo\Office\Basic\MYSQL {
     {
         public object $mysqli;
         public bool $readAllowed = true;
+        public ?string $searchField = 'name';
         public array $dataStatements = [];
         public array $countStatements = [];
         public array $rows = [[
@@ -55,7 +56,7 @@ namespace Tualo\Office\Basic\MYSQL {
                 'table_name' => 'example',
                 'read_table' => 'example',
                 'displayfield' => 'name',
-                'searchfield' => 'name',
+                'searchfield' => $this->searchField,
                 'searchany' => 0,
             ];
         }
@@ -152,6 +153,46 @@ namespace {
     check(!array_key_exists('debug_count_sql', $legacy), 'Legacy debug_query enabled count SQL output');
 
     App::$settings = parse_ini_string("[ds]\nreturn_sql=1\n", true, INI_SCANNER_RAW);
+
+    foreach ([1, 2, '1', '2'] as $fulltext) {
+        foreach ([null, 0, 1, 2] as $filterBySearch) {
+            foreach (['search', 'query'] as $searchKey) {
+                $db = new Database();
+                $db->searchField = null;
+                $fulltextRequest = [
+                    'tablename' => 'example',
+                    $searchKey => 'needle',
+                    'fulltext' => $fulltext,
+                    'count' => 1,
+                    'limit' => 5,
+                    'filter' => [['property' => 'id', 'operator' => 'eq', 'value' => 1]],
+                    'latefilter' => [['property' => 'name', 'operator' => 'eq', 'value' => 'Alpha']],
+                ];
+                if ($filterBySearch !== null) $fulltextRequest['filter_by_search'] = $filterBySearch;
+                $response = RestApiGet::read($db, $fulltextRequest);
+                check($response['success'] === true, 'Fulltext requires a configured searchfield');
+                foreach ([$response['debug_sql'], $response['debug_count_sql']] as $sql) {
+                    check(str_contains($sql, '`ds_ftsearch_example`'), 'Fulltext join missing');
+                    check(!str_contains($sql, '`name` like'), 'Fulltext adds a searchfield LIKE filter');
+                    check(str_contains($sql, '`id` ='), 'Fulltext removed an explicit filter');
+                    check(
+                        str_contains($sql, (int)$fulltext === 1 ? 'match(searchvalue)' : '`searchvalue` like'),
+                        'Wrong fulltext search mode'
+                    );
+                }
+                check(str_contains($response['debug_sql'], 'Alpha'), 'Fulltext removed an explicit late filter');
+                $streamResponse = streamed(new Database(), $fulltextRequest);
+                check($streamResponse['debug_sql'] === $response['debug_sql'], 'Streaming fulltext SQL differs');
+            }
+        }
+    }
+
+    foreach ([[], ['fulltext' => 0, 'filter_by_search' => 1]] as $searchOptions) {
+        $response = RestApiGet::read(new Database(), [
+            'tablename' => 'example', 'search' => 'needle', 'limit' => 5,
+        ] + $searchOptions);
+        check(str_contains($response['debug_sql'], '`name` like'), 'Normal searchfield filter missing');
+    }
 
     $db = new Database();
     $debug = RestApiGet::read($db, $request);
