@@ -12,7 +12,7 @@ use Tualo\Office\DSX\ErrorLogger;
  * Request keys (all optional except tablename):
  *   tablename, filter, latefilter, concat_by, sort, reference,
  *   query, search, searchfield, filter_by_search, fulltext,
- *   start, limit, page, count, nodata, rownumber, returnfields,
+ *   start, limit, page, count, nodata, rownumber, returnfields (alias: fields),
  *   comibedfieldname, debug_query, concat_set_table, temporary_table_name,
  *   labels (1 = return ds_column_list_label / ds_column_form_label), language
  *
@@ -66,6 +66,23 @@ class RestApiGet
     {
         if (is_string($value)) $value = json_decode($value, true);
         return is_array($value) ? array_values($value) : [];
+    }
+
+    /**
+     * `fields` of the stores/renderers is an alias of `returnfields`
+     * (previously applied by DSReadRoute by rewriting the query).
+     * A contained `__rownumber` activates the row number like the old route.
+     */
+    private static function normalizeFields(array $request): array
+    {
+        if (isset($request['returnfields']) || !isset($request['fields'])) return $request;
+        $fields = is_string($request['fields']) ? json_decode($request['fields'], true) : $request['fields'];
+        if (!is_array($fields)) return $request;
+        if (!isset($request['rownumber']) && in_array('__rownumber', $fields, true)) {
+            $request['rownumber'] = 1;
+        }
+        $request['returnfields'] = array_values($fields);
+        return $request;
     }
 
     /**
@@ -297,6 +314,7 @@ class RestApiGet
     {
         // stdClass (json_decode without assoc) => array
         $request = json_decode(json_encode($request), true);
+        $request = self::normalizeFields($request);
         $q = $this->quoter;
 
         $tableName = $request['tablename'] ?? null;
@@ -485,6 +503,7 @@ class RestApiGet
     {
         $tableName = $definition->getTableName();
         $combinedFieldName = self::is($request, 'comibedfieldname', 1);
+
 
         $returnFields = $request['returnfields'] ?? null;
         if (is_string($returnFields)) $returnFields = json_decode($returnFields, true);
