@@ -4,6 +4,7 @@ namespace Tualo\Office\DSX\Write;
 
 use Tualo\Office\DSX\Read\AccessControl;
 use Tualo\Office\DSX\Read\SqlQuoter;
+use Tualo\Office\Basic\TualoApplication as App;
 
 /**
  * PHP port of the stored procedure dsx_rest_api_set: insert, update and delete for ds tables.
@@ -28,6 +29,7 @@ class RestApiSet
         $this->quoter = new SqlQuoter($db);
     }
 
+
     public static function write($db, array $request): array
     {
         return (new self($db))->execute($request);
@@ -46,8 +48,9 @@ class RestApiSet
                 );
             }
         }
-
+        App::logger('DSX')->warning('Executing write request for table: ' . $writeRequest->tableName);
         $definition = WriteDefinition::load($this->db, $writeRequest->tableName);
+        App::logger('DSX')->warning('Loaded write definition for table: ' . $writeRequest->tableName);
         return Transaction::run($this->db, fn() => $this->run($writeRequest, $definition));
     }
 
@@ -59,13 +62,17 @@ class RestApiSet
         if ($request->type == 'delete') {
             $rows = $this->delete($request, $definition, $preparer, $writer);
         } else {
+            App::logger('DSX')->warning('Preparing to handle write request of type: ' . $request->type);
             $columns = $definition->templateColumns($request);
+            App::logger('DSX')->warning('Template columns for request: ' . implode(', ', $columns));
             if ($request->type == 'update') {
                 // only sent columns: defaults must not invent values for missing (key) columns
                 $columns = array_values(array_filter($columns, fn($c) => $request->hasKey($c)));
             }
             $withFiles = $request->hasKey('__file_data') && $request->hasKey('__file_name');
+            App::logger('DSX')->warning('With files: ' . ($withFiles ? 'true' : 'false'));
             $rows = $preparer->prepare($request, $columns, true, $withFiles);
+            App::logger('DSX')->warning('Prepared rows: ' . json_encode($rows));
 
             if ($request->type == 'insert') {
                 $writer->insert($request->subtype, $columns, $rows);
@@ -82,6 +89,7 @@ class RestApiSet
                 }
                 unset($row);
             }
+            App::logger('DSX')->warning('Rows after write operation: ' . json_encode($rows));
 
             if ($withFiles) {
                 (new FileDataHandler($this->db, $this->quoter, $definition))->handle($rows);
