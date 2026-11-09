@@ -100,6 +100,7 @@ class RestApiSet
         foreach ($rows as $row) {
             $data[] = array_merge(['__clientid' => $row['clientid'], '__id' => $row['id']], $row['values']);
         }
+        App::logger('DSX')->warning('Final data to be returned: ' . json_encode($data));
         return [
             'success' => true,
             'message' => 'OK',
