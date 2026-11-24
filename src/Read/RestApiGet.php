@@ -492,7 +492,8 @@ class RestApiGet
         foreach (['list' => $definition->getListLabels($language), 'form' => $definition->getFormLabels($language)] as $type => $labels) {
             $result[$type] = [];
             foreach ($labels as $column => $label) {
-                $label['dataIndex'] = $prefix . $column;
+                $label['column_name'] = strtolower($column);
+                $label['dataIndex'] = $prefix . strtolower($column);
                 $result[$type][] = $label;
             }
         }
@@ -512,12 +513,13 @@ class RestApiGet
         if (is_string($returnFields)) $returnFields = json_decode($returnFields, true);
         $columns = $definition->getReadColumnNames();
         if (is_array($returnFields)) {
-            $columns = array_values(array_filter($columns, fn($c) => in_array($c, $returnFields, true)));
+            $returnFields = array_map(fn($field) => is_string($field) ? strtolower($field) : $field, $returnFields);
+            $columns = array_values(array_filter($columns, fn($c) => in_array(strtolower($c), $returnFields, true)));
         }
 
         $keys = [];
         foreach ($columns as $column) {
-            $keys[$column] = $combinedFieldName ? $tableName . '__' . $column : $column;
+            $keys[$column] = ($combinedFieldName ? $tableName . '__' : '') . strtolower($column);
         }
 
         return function (array $row) use ($keys, $concatSetTable, $rowNumber): array {
@@ -533,7 +535,7 @@ class RestApiGet
                 $item['_nofields_'] = 1;
             }
             foreach ($keys as $column => $key) {
-                $item[$key] = $row[$column] ?? null;
+                $item[$key] = $row[strtolower($column)] ?? $row[$column] ?? null;
             }
             return $item;
         };

@@ -25,6 +25,7 @@ namespace Tualo\Office\Basic\MYSQL {
         public object $mysqli;
         public bool $readAllowed = true;
         public ?string $searchField = 'name';
+        public bool $mixedColumn = false;
         public int $searchAny = 0;
         public array $dataStatements = [];
         public array $countStatements = [];
@@ -43,10 +44,12 @@ namespace Tualo\Office\Basic\MYSQL {
                 return $this->readAllowed ? [['table_name' => 'example']] : [];
             }
             if (str_contains($sql, 'from ds_column')) {
-                return [
+                $columns = [
                     ['column_name' => 'id', 'data_type' => 'int', 'existsreal' => 1, 'is_primary' => 1, 'is_generated' => 'NEVER'],
                     ['column_name' => 'name', 'data_type' => 'varchar', 'existsreal' => 1, 'is_primary' => 0, 'is_generated' => 'NEVER'],
                 ];
+                if ($this->mixedColumn) $columns[] = ['column_name' => 'allowForm', 'data_type' => 'tinyint', 'existsreal' => 1, 'is_primary' => 0, 'is_generated' => 'NEVER'];
+                return $columns;
             }
             throw new \RuntimeException('Unexpected metadata query');
         }
@@ -154,6 +157,28 @@ namespace {
     check(!array_key_exists('debug_count_sql', $legacy), 'Legacy debug_query enabled count SQL output');
 
     App::$settings = parse_ini_string("[ds]\nreturn_sql=1\n", true, INI_SCANNER_RAW);
+
+    $db = new Database();
+    $db->mixedColumn = true;
+    $db->rows[0]['allowform'] = 1;
+    $mixedRequest = [
+        'tablename' => 'example',
+        'returnfields' => ['allowform'],
+        'filter' => [['property' => 'allowform', 'operator' => 'eq', 'value' => true]],
+        'sort' => [['property' => 'allowform', 'direction' => 'ASC']]
+    ];
+    $mixed = RestApiGet::read($db, $mixedRequest);
+    check($mixed['data'][0]['allowform'] === 1 && !array_key_exists('allowForm', $mixed['data'][0]), 'Read did not lowercase mixed-case column');
+    check(str_contains($mixed['debug_sql'], '`allowform` = 1'), 'Mixed-case column cannot be filtered');
+    check(str_contains($mixed['debug_sql'], '`allowform` asc'), 'Mixed-case column cannot be sorted');
+    $streamDb = new Database();
+    $streamDb->mixedColumn = true;
+    $streamDb->rows[0]['allowform'] = 1;
+    check(streamed($streamDb, $mixedRequest)['data'][0]['allowform'] === 1, 'Stream lost the mixed-case column');
+    $mixedRequest['comibedfieldname'] = 1;
+    $mixedRequest['returnfields'] = ['allowForm'];
+    $combined = RestApiGet::read($db, $mixedRequest);
+    check($combined['data'][0]['example__allowform'] === 1, 'Combined read did not lowercase the field name');
 
     foreach ([0 => 'needle%', 1 => '%needle%'] as $searchAny => $pattern) {
         foreach ([[], ['fulltext' => 0], ['fulltext' => 0, 'filter_by_search' => 1]] as $options) {

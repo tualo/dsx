@@ -16,6 +16,8 @@ class TableDefinition
     private array $columns = [];
     /** @var array<string,array> columns of the read table, keyed by column_name */
     private array $readColumns = [];
+    private array $columnNames = [];
+    private array $readColumnNames = [];
     private $db;
     /** @var array<string,array<string,array>> loaded labels, keyed by "list|form" . language */
     private array $labels = [];
@@ -46,6 +48,8 @@ class TableDefinition
         $definition->readColumns = ($definition->readTable == $tableName)
             ? $definition->columns
             : self::loadColumns($db, $definition->readTable);
+        $definition->columnNames = array_change_key_case($definition->columns, CASE_LOWER);
+        $definition->readColumnNames = array_change_key_case($definition->readColumns, CASE_LOWER);
         return $definition;
     }
 
@@ -127,12 +131,12 @@ class TableDefinition
 
     public function hasColumn(string $name): bool
     {
-        return isset($this->columns[$name]);
+        return isset($this->columnNames[strtolower($name)]);
     }
 
     public function hasReadColumn(string $name): bool
     {
-        return isset($this->readColumns[$name]);
+        return isset($this->readColumnNames[strtolower($name)]);
     }
 
     /**

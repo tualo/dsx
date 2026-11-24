@@ -52,7 +52,7 @@ class DataPreparer
         $serial = null;
         foreach ($columns as $i => $name) {
             $jtColumns[] = $q->identifier($name) . ' ' . $this->definition->jsonTableType($name)
-                . ' path \'$."' . $name . '"\' null on empty';
+                . ' path \'$."' . strtolower($name) . '"\' null on empty';
 
             $valueSql = 'jt.' . $q->identifier($name);
             if ($applyDefaults) {

@@ -49,7 +49,16 @@ class WriteRequest
         $r->requestedType = $request['type'];
         $r->useInsertUpdate = array_key_exists('useInsertUpdate', $request);
         $r->pureInsert = in_array($r->requestedType, ['insert', 'replace'], true) && !$r->useInsertUpdate;
-        $r->rows = $request['data'];
+        $r->rows = [];
+        foreach ($request['data'] as $row) {
+            $normalized = [];
+            foreach ($row as $key => $value) {
+                $name = strtolower((string)$key);
+                if (array_key_exists($name, $normalized)) self::fail('Mehrdeutiger Feldname: ' . $name);
+                $normalized[$name] = $value;
+            }
+            $r->rows[] = $normalized;
+        }
         if (count($r->rows) > 0) {
             foreach (array_keys($r->rows[0]) as $key) $r->firstRowKeys[(string)$key] = true;
         }
@@ -92,7 +101,7 @@ class WriteRequest
 
     public function hasKey(string $column): bool
     {
-        return isset($this->firstRowKeys[$column]);
+        return isset($this->firstRowKeys[strtolower($column)]);
     }
 
     /** JSON_VALUE(request,'$.x')='1' is true for true, 1 and "1" */

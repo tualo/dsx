@@ -98,7 +98,7 @@ class RestApiSet
 
         $data = [];
         foreach ($rows as $row) {
-            $data[] = array_merge(['__clientid' => $row['clientid'], '__id' => $row['id']], $row['values']);
+            $data[] = array_merge(['__clientid' => $row['clientid'], '__id' => $row['id']], array_change_key_case($row['values'], CASE_LOWER));
         }
         App::logger('DSX')->warning('Final data to be returned: ' . json_encode($data));
         return [
