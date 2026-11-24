@@ -24,6 +24,10 @@ $result = \Tualo\Office\DSX\Read\RestApiGet::read($db, [
 
 Spaltennamen werden gegen `ds_column` geprüft, Werte escaped. `extendedwhere` (rohes SQL) wird nur mit `new RestApiGet($db, true)` ausgewertet.
 
+Bei `query` sucht der Read per LIKE im konfigurierten Suchfeld: `searchany=1`
+verwendet `%query%`, `searchany=0` dagegen `query%`. Ein explizit gesetztes
+`fulltext=1` oder `fulltext=2` verwendet weiterhin die Volltextsuche.
+
 Bei `fulltext=1` (MATCH/AGAINST) oder `fulltext=2` (wortweise LIKE-Suche)
 wird ausschließlich über `ds_ftsearch_{tablename}.searchvalue` gesucht.
 Unabhängig von `filter_by_search` wird dabei kein automatischer Filter auf

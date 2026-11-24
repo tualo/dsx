@@ -343,12 +343,15 @@ class RestApiGet
         }
 
         $search = (isset($request['search']) && is_scalar($request['search'])) ? (string)$request['search'] : null;
+        $usesFulltext = self::is($request, 'fulltext', 1) || self::is($request, 'fulltext', 2);
         if (isset($request['query']) && is_scalar($request['query'])) {
-            $search = '%' . $request['query'] . '%';
+            $search = $usesFulltext
+                ? '%' . $request['query'] . '%'
+                : (string)$request['query'] . ($definition->isSearchAny() ? '' : '%');
             $request['filter_by_search'] = 1;
+            if (!isset($request['fulltext'])) $request['fulltext'] = 0;
         }
 
-        $usesFulltext = self::is($request, 'fulltext', 1) || self::is($request, 'fulltext', 2);
         if (!is_null($search) && !$usesFulltext) {
             $searchField = $definition->getSearchField();
             if (array_key_exists('searchfield', $request) && !is_null($request['searchfield'])) {

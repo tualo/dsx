@@ -25,6 +25,7 @@ namespace Tualo\Office\Basic\MYSQL {
         public object $mysqli;
         public bool $readAllowed = true;
         public ?string $searchField = 'name';
+        public int $searchAny = 0;
         public array $dataStatements = [];
         public array $countStatements = [];
         public array $rows = [[
@@ -57,7 +58,7 @@ namespace Tualo\Office\Basic\MYSQL {
                 'read_table' => 'example',
                 'displayfield' => 'name',
                 'searchfield' => $this->searchField,
-                'searchany' => 0,
+                'searchany' => $this->searchAny,
             ];
         }
 
@@ -153,6 +154,22 @@ namespace {
     check(!array_key_exists('debug_count_sql', $legacy), 'Legacy debug_query enabled count SQL output');
 
     App::$settings = parse_ini_string("[ds]\nreturn_sql=1\n", true, INI_SCANNER_RAW);
+
+    foreach ([0 => 'needle%', 1 => '%needle%'] as $searchAny => $pattern) {
+        foreach ([[], ['fulltext' => 0], ['fulltext' => 0, 'filter_by_search' => 1]] as $options) {
+            $db = new Database();
+            $db->searchAny = $searchAny;
+            $queryRequest = ['tablename' => 'example', 'query' => 'needle', 'count' => 1] + $options;
+            $response = RestApiGet::read($db, $queryRequest);
+            foreach ([$response['debug_sql'], $response['debug_count_sql']] as $sql) {
+                check(str_contains($sql, "`name` like '$pattern'"), 'query ignored searchany: ' . $sql);
+            }
+            $streamDb = new Database();
+            $streamDb->searchAny = $searchAny;
+            $stream = streamed($streamDb, $queryRequest);
+            check($stream['debug_sql'] === $response['debug_sql'], 'Streamed query differs from normal query');
+        }
+    }
 
     foreach ([1, 2, '1', '2'] as $fulltext) {
         foreach ([null, 0, 1, 2] as $filterBySearch) {
